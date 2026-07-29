@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: closetcast
+    runtime: node
+    repo: https://github.com/kyzltrade-cpu/ClosetCast
+    buildCommand: npm install
+    startCommand: node render.js
+    envVars:
+      - fromGroup: closetcast-env
