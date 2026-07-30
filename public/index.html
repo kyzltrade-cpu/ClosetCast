@@ -80,26 +80,56 @@
   .wrap{max-width:440px;margin:0 auto;padding:20px 20px 132px;}
 
   /* ═══════════ SCANNER ═══════════ */
-  .scanner-screen{position:relative;width:100%;aspect-ratio:4/5;overflow:hidden;background:#000;border-radius:var(--r-lg);}
+  .scanner-screen{position:relative;width:100%;aspect-ratio:4/5;overflow:hidden;background:#0A0A0C;border-radius:var(--r-lg);}
   .scanner-screen video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
   .scanner-overlay{position:absolute;inset:0;pointer-events:none;}
-  .scanner-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70%;border:2px solid rgba(255,255,255,.7);border-radius:12px;height:120px;box-shadow:0 0 0 999px rgba(0,0,0,.5);}
-  .scanner-line{position:absolute;top:0;left:0;right:0;height:2px;background:#fff;animation:scanMove 2s ease-in-out infinite;border-radius:2px;}
-  @keyframes scanMove{0%,100%{transform:translateY(0);}50%{transform:translateY(118px);}}
-  .scanner-hint{position:absolute;bottom:30px;left:0;right:0;text-align:center;color:rgba(255,255,255,.7);font-size:13px;font-weight:500;letter-spacing:.02em;}
-  .scanner-start{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;background:rgba(255,255,255,.9);color:#000;border:0;border-radius:12px;padding:14px 28px;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--sans);}
+  .scanner-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72%;height:124px;}
+  .scanner-frame .c{position:absolute;width:24px;height:24px;border-color:rgba(255,255,255,.85);border-style:solid;border-width:0;}
+  .scanner-frame .c.tl{top:0;left:0;border-top-width:2.5px;border-left-width:2.5px;border-radius:4px 0 0 0;}
+  .scanner-frame .c.tr{top:0;right:0;border-top-width:2.5px;border-right-width:2.5px;border-radius:0 4px 0 0;}
+  .scanner-frame .c.bl{bottom:0;left:0;border-bottom-width:2.5px;border-left-width:2.5px;border-radius:0 0 0 4px;}
+  .scanner-frame .c.br{bottom:0;right:0;border-bottom-width:2.5px;border-right-width:2.5px;border-radius:0 0 4px 0;}
+  .scanner-frame .c::after{content:'';position:absolute;width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.08);filter:blur(6px);}
+  .scanner-mask{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72%;height:124px;box-shadow:0 0 0 999px rgba(0,0,0,.52);border-radius:4px;pointer-events:none;}
+  .scanner-line{position:absolute;left:50%;transform:translateX(-50%);top:0;width:calc(72% - 28px);height:2.5px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);border-radius:2px;filter:drop-shadow(0 0 6px rgba(255,255,255,.35));animation:scanMove 2.4s ease-in-out infinite;pointer-events:none;z-index:5;}
+  @keyframes scanMove{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(120px);}}
+  .scanner-hint{position:absolute;bottom:30px;left:0;right:0;text-align:center;color:rgba(255,255,255,.6);font-size:12px;font-weight:500;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:7px;}
 
-  .fullscreen-scanner{position:fixed;inset:0;z-index:999;background:#000;display:flex;flex-direction:column;}
+  .scanner-start-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:14px;background:none;border:0;font-family:var(--sans);padding:0;color:#fff;outline:none;}
+  .scanner-start-btn .ring{width:72px;height:72px;border-radius:50%;border:2px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;transition:border-color .25s,transform .15s;position:relative;}
+  .scanner-start-btn .ring svg{width:32px;height:32px;color:rgba(255,255,255,.85);}
+  .scanner-start-btn .ring::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px solid rgba(255,255,255,.1);}
+  .scanner-start-btn:hover .ring{border-color:rgba(255,255,255,.5);transform:scale(1.04);}
+  .scanner-start-btn:active .ring{transform:scale(.96);}
+  .scanner-start-btn .label{font-size:14px;font-weight:600;letter-spacing:.02em;color:rgba(255,255,255,.85);}
+
+  .fullscreen-scanner{position:fixed;inset:0;z-index:999;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .32s ease;}
+  .fullscreen-scanner.open{opacity:1;}
   .fullscreen-scanner video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
-  .fullscreen-scanner .scanner-hint{position:fixed;bottom:40px;left:0;right:0;text-align:center;color:rgba(255,255,255,.7);font-size:13px;font-weight:500;letter-spacing:.02em;z-index:1001;pointer-events:none;}
   .fullscreen-scanner .scanner-overlay{position:fixed;inset:0;pointer-events:none;z-index:1000;}
-  .fullscreen-scanner .scanner-frame{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:75%;border:2px solid rgba(255,255,255,.7);border-radius:12px;height:140px;box-shadow:0 0 0 999px rgba(0,0,0,.55);pointer-events:none;}
-  .fullscreen-scanner .scanner-line{position:absolute;top:0;left:0;right:0;height:2px;background:#fff;animation:scanMove 2s ease-in-out infinite;border-radius:2px;pointer-events:none;}
-  .fullscreen-scanner .scanner-close{position:fixed;top:60px;right:20px;z-index:1002;background:rgba(255,255,255,.15);border:0;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;transition:background .15s;}
-  .fullscreen-scanner .scanner-close:hover{background:rgba(255,255,255,.25);}
-  .fullscreen-scanner .scanner-header{position:fixed;top:0;left:0;right:0;z-index:1001;padding:56px 20px 16px;background:linear-gradient(to bottom,rgba(0,0,0,.6),transparent);}
-  .fullscreen-scanner .scanner-header h1{margin:0;font-family:var(--serif);font-size:20px;font-weight:600;color:#fff;letter-spacing:-.005em;}
-  .fullscreen-scanner .scanner-header p{margin:4px 0 0;font-size:13px;color:rgba(255,255,255,.6);}
+  .fullscreen-scanner .scanner-frame{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:76%;height:144px;}
+  .fullscreen-scanner .scanner-frame .c{position:absolute;width:28px;height:28px;border-color:rgba(255,255,255,.9);border-style:solid;border-width:0;}
+  .fullscreen-scanner .scanner-frame .c.tl{top:0;left:0;border-top-width:3px;border-left-width:3px;border-radius:4px 0 0 0;}
+  .fullscreen-scanner .scanner-frame .c.tr{top:0;right:0;border-top-width:3px;border-right-width:3px;border-radius:0 4px 0 0;}
+  .fullscreen-scanner .scanner-frame .c.bl{bottom:0;left:0;border-bottom-width:3px;border-left-width:3px;border-radius:0 0 0 4px;}
+  .fullscreen-scanner .scanner-frame .c.br{bottom:0;right:0;border-bottom-width:3px;border-right-width:3px;border-radius:0 0 4px 0;}
+  .fullscreen-scanner .scanner-mask{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:76%;height:144px;box-shadow:0 0 0 999px rgba(0,0,0,.48);border-radius:4px;pointer-events:none;z-index:1000;}
+  .fullscreen-scanner .scanner-line{position:fixed;z-index:1001;top:50%;left:50%;width:calc(76% - 32px);height:2.5px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);border-radius:2px;filter:drop-shadow(0 0 8px rgba(255,255,255,.4));animation:scanMoveFS 2.4s ease-in-out infinite;pointer-events:none;}
+  @keyframes scanMoveFS{0%,100%{transform:translate(-50%,-72px);}50%{transform:translate(-50%,72px);}}
+  .fullscreen-scanner .scanner-hint{position:fixed;bottom:44px;left:0;right:0;text-align:center;color:rgba(255,255,255,.55);font-size:12px;font-weight:500;letter-spacing:.04em;z-index:1002;pointer-events:none;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .fullscreen-scanner .scanner-hint svg{width:14px;height:14px;opacity:.5;}
+  .fullscreen-scanner .scanner-close{position:fixed;top:60px;left:20px;z-index:1002;background:rgba(255,255,255,.12);border:0;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;transition:background .15s,transform .1s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+  .fullscreen-scanner .scanner-close:hover{background:rgba(255,255,255,.2);}
+  .fullscreen-scanner .scanner-close:active{transform:scale(.92);}
+  .fullscreen-scanner .scanner-close svg{width:20px;height:20px;}
+  .fullscreen-scanner .scanner-flash{position:fixed;top:60px;right:20px;z-index:1002;background:rgba(255,255,255,.12);border:0;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;transition:background .15s,transform .1s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+  .fullscreen-scanner .scanner-flash:hover{background:rgba(255,255,255,.2);}
+  .fullscreen-scanner .scanner-flash:active{transform:scale(.92);}
+  .fullscreen-scanner .scanner-flash.on{background:rgba(255,230,140,.2);color:#FFE68C;}
+  .fullscreen-scanner .scanner-header{position:fixed;top:0;left:0;right:0;z-index:1001;padding:56px 68px 16px;text-align:center;}
+  .fullscreen-scanner .scanner-header h1{margin:0;font-family:var(--serif);font-size:18px;font-weight:600;color:#fff;letter-spacing:-.005em;opacity:0;transition:opacity .5s ease;}
+  .fullscreen-scanner .scanner-header p{margin:3px 0 0;font-size:12px;color:rgba(255,255,255,.45);opacity:0;transition:opacity .5s ease .1s;}
+  .fullscreen-scanner.open .scanner-header h1,.fullscreen-scanner.open .scanner-header p{opacity:1;}
 
   .detail-mode .device{margin:0 auto;}
   .detail-mode body{display:flex;align-items:center;justify-content:center;padding:40px 16px;}
@@ -292,19 +322,29 @@
   <div class="caption">ClosetCast · The Soho Edit</div>
 </div>
 
-<div class="fullscreen-scanner" id="fullscreenScanner" style="display:none">
+  <div class="fullscreen-scanner" id="fullscreenScanner">
+  <button class="scanner-close" id="fsCloseBtn" aria-label="Close scanner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+  </button>
+  <button class="scanner-flash" id="fsFlashBtn" aria-label="Toggle flash">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+  </button>
   <div class="scanner-header">
     <h1>ClosetCast</h1>
-    <p>Point camera at barcode on the tag</p>
+    <p>Point camera at barcode</p>
   </div>
-  <button class="scanner-close" id="fsCloseBtn" aria-label="Close scanner">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-  </button>
   <div id="fsReader" style="width:100%;height:100%;position:absolute;inset:0;"></div>
   <div class="scanner-overlay">
-    <div class="scanner-frame"><div class="scanner-line"></div></div>
+    <div class="scanner-mask"></div>
+    <div class="scanner-frame">
+      <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+    </div>
+    <div class="scanner-line"></div>
   </div>
-  <p class="scanner-hint">Point camera at barcode on the tag</p>
+  <p class="scanner-hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><rect x="16" y="16" width="5" height="5"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    Align barcode with the frame
+  </p>
 </div>
 
 <script>
@@ -397,16 +437,39 @@ function fmtPhone(v){
 
 let codeReader = null;
 let scannerActive = false;
+let torchOn = false;
 const fsOverlay = document.getElementById("fullscreenScanner");
 
 function scannerView() {
   return `
     <div class="scanner-screen">
-      <div class="scanner-start" id="startFullscreen">Tap to Start Camera</div>
+      <button class="scanner-start-btn" id="startFullscreen">
+        <div class="ring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.5 4h3.5a2 2 0 0 1 2 2v3.5"/>
+            <path d="M14.5 20h3.5a2 2 0 0 0 2-2v-3.5"/>
+            <path d="M9.5 4H6a2 2 0 0 0-2 2v3.5"/>
+            <path d="M9.5 20H6a2 2 0 0 1-2-2v-3.5"/>
+            <circle cx="12" cy="12" r="2.5"/>
+            <path d="M12 9.5V7"/>
+            <path d="M12 17v-2.5"/>
+            <path d="M9.5 12H7"/>
+            <path d="M17 12h-2.5"/>
+          </svg>
+        </div>
+        <span class="label">Start Camera</span>
+      </button>
       <div class="scanner-overlay">
-        <div class="scanner-frame"><div class="scanner-line"></div></div>
+        <div class="scanner-mask"></div>
+        <div class="scanner-frame">
+          <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+        </div>
+        <div class="scanner-line"></div>
       </div>
-      <p class="scanner-hint">Point camera at barcode on the tag</p>
+      <p class="scanner-hint">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><rect x="16" y="16" width="5" height="5"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Align barcode with the frame
+      </p>
     </div>
   `;
 }
@@ -414,8 +477,10 @@ function scannerView() {
 function startFullscreenScanner() {
   if (scannerActive) return;
   scannerActive = true;
+  torchOn = false;
   document.body.classList.add("fs-open");
   fsOverlay.style.display = "flex";
+  requestAnimationFrame(() => fsOverlay.classList.add("open"));
 
   codeReader = new Html5Qrcode("fsReader");
   codeReader.start(
@@ -438,11 +503,25 @@ function startFullscreenScanner() {
       handleScan(text);
     },
     () => {}
-  ).catch(() => {
+  ).then(() => {
+    const track = codeReader?.getRunningTrackCameraCapabilities();
+    if (track?.torchFeature?.isSupported()) {
+      document.getElementById("fsFlashBtn").style.display = "flex";
+    }
+  }).catch(() => {
     stopFullscreenScanner();
     state.error = "Camera not available. Please check permissions.";
     if (state.screen === "scanner") render();
   });
+}
+
+function toggleTorch() {
+  if (!codeReader) return;
+  const track = codeReader.getRunningTrackCameraCapabilities();
+  if (!track?.torchFeature?.isSupported()) return;
+  torchOn = !torchOn;
+  track.torchFeature.apply(torchOn);
+  document.getElementById("fsFlashBtn").classList.toggle("on", torchOn);
 }
 
 function stopFullscreenScanner() {
@@ -450,9 +529,13 @@ function stopFullscreenScanner() {
     codeReader.stop().catch(() => {});
     codeReader = null;
   }
+  torchOn = false;
   scannerActive = false;
   document.body.classList.remove("fs-open");
+  fsOverlay.classList.remove("open");
   fsOverlay.style.display = "none";
+  const flashBtn = document.getElementById("fsFlashBtn");
+  if (flashBtn) { flashBtn.style.display = "none"; flashBtn.classList.remove("on"); }
 }
 
 async function handleScan(code) {
@@ -678,6 +761,7 @@ async function handleSave() {
 }
 
 document.getElementById("fsCloseBtn")?.addEventListener("click", stopFullscreenScanner);
+document.getElementById("fsFlashBtn")?.addEventListener("click", toggleTorch);
 render();
 </script>
 </body>
