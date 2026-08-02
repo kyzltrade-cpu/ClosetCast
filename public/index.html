@@ -23,64 +23,36 @@
     --shadow-frame:0 1px 2px rgba(23,24,26,.04), 0 18px 44px -22px rgba(23,24,26,.3);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;min-height:100vh;}
+  html,body{margin:0;min-height:100dvh;}
   body{
     font-family:var(--sans);color:var(--ink);
     -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
-    display:flex;align-items:center;justify-content:center;padding:40px 16px;
-    background:#EDEBE5;
-    background-image:
-      radial-gradient(ellipse 1100px 760px at 18% -8%, rgba(250,249,246,.9) 0%, transparent 58%),
-      radial-gradient(ellipse 900px 700px at 92% 112%, rgba(226,222,213,.7) 0%, transparent 52%);
+    background:#FAFAF8;
   }
-  .stage{position:relative;}
+  .app-shell{position:relative;min-height:100dvh;display:flex;flex-direction:column;}
 
-  /* ═══════════ DEVICE ═══════════ */
-  .device{
-    width:393px;max-width:100%;background:#0B0B0C;border-radius:56px;padding:12px;position:relative;
-    box-shadow:0 0 0 1.5px #48484A, 0 0 0 3px #1C1C1E,
-      0 55px 110px -30px rgba(10,10,12,.5), 0 20px 48px -16px rgba(10,10,12,.3),
-      inset 0 1px 0 rgba(255,255,255,.1);
+  /* ═══════════ TOP BAR ═══════════ */
+  .topbar{
+    position:sticky;top:0;z-index:40;
+    background:rgba(250,250,248,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border-soft);
+    height:56px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 12px;
   }
-  .side{position:absolute;background:#3A3A3C;border-radius:3px;width:3px;}
-  .side.l1{left:-3px;top:182px;height:32px;} .side.l2{left:-3px;top:228px;height:60px;}
-  .side.r1{right:-3px;top:206px;height:92px;}
-  .screen{
-    width:100%;height:828px;background:var(--bg);border-radius:45px;overflow:hidden;
-    position:relative;display:flex;flex-direction:column;
-  }
-  .island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:120px;height:35px;background:#000;border-radius:20px;z-index:90;}
-  .home-ind{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:rgba(23,24,26,.85);z-index:95;pointer-events:none;}
-
-  /* ═══════════ STATUS + NAV ═══════════ */
-  .statusbar{
-    height:54px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;
-    padding:0 32px 8px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;
-    font-size:15px;font-weight:600;letter-spacing:-.01em;z-index:20;
-  }
-  .statusbar .r{display:flex;align-items:center;gap:7px;}
+  .topbar .tl{justify-self:start;display:flex;align-items:center;}
+  .topbar .tc{justify-self:center;display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .topbar .tr{justify-self:end;}
+  .topbar b{font-family:var(--serif);font-weight:600;font-size:16px;letter-spacing:-.01em;line-height:1;}
+  .topbar .loc{font-size:8px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);line-height:1;}
+  .icon-btn{background:none;border:0;padding:7px;cursor:pointer;display:flex;color:var(--ink);border-radius:var(--r-sm);transition:background .15s,opacity .15s;}
+  .icon-btn:hover{background:rgba(23,24,26,.05);} .icon-btn:active{opacity:.5;}
 
   .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative;}
   .scroll::-webkit-scrollbar{display:none;}
 
-  .nav{
-    position:sticky;top:0;z-index:10;
-    background:rgba(250,250,248,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-    border-bottom:1px solid var(--border-soft);
-    height:52px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 16px;
-  }
-  .nav .nl{justify-self:start;}
-  .nav .nc{justify-self:center;display:flex;flex-direction:column;align-items:center;gap:2px;}
-  .nav .nr{justify-self:end;}
-  .nav b{font-family:var(--serif);font-weight:600;font-size:16px;letter-spacing:-.01em;line-height:1;}
-  .nav .loc{font-size:8px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);line-height:1;}
-  .icon-btn{background:none;border:0;padding:7px;cursor:pointer;display:flex;color:var(--ink);border-radius:var(--r-sm);transition:background .15s,opacity .15s;}
-  .icon-btn:hover{background:rgba(23,24,26,.05);} .icon-btn:active{opacity:.5;}
-
   .wrap{max-width:440px;margin:0 auto;padding:20px 20px 132px;}
 
   /* ═══════════ SCANNER ═══════════ */
-  .scanner-screen{position:relative;width:100%;height:600px;max-height:calc(100vh - 60px);overflow:hidden;background:#0A0A0C;border-radius:var(--r-lg);}
+  .scanner-screen{position:relative;width:100%;height:calc(100dvh - 176px);min-height:420px;overflow:hidden;background:#0A0A0C;border-radius:var(--r-lg);}
   .scanner-screen video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
   .scanner-overlay{position:absolute;inset:0;pointer-events:none;}
   .scanner-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72%;height:124px;}
@@ -94,6 +66,7 @@
   .scanner-line{position:absolute;left:50%;transform:translateX(-50%);top:0;width:calc(72% - 28px);height:2.5px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);border-radius:2px;filter:drop-shadow(0 0 6px rgba(255,255,255,.35));animation:scanMove 2.4s ease-in-out infinite;pointer-events:none;z-index:5;}
   @keyframes scanMove{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(120px);}}
   .scanner-hint{position:absolute;bottom:30px;left:0;right:0;text-align:center;color:rgba(255,255,255,.6);font-size:12px;font-weight:500;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:7px;}
+  .scanner-screen-err{position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:7px;background:var(--red);color:#fff;border-radius:999px;padding:9px 16px;font-size:12px;font-weight:600;z-index:12;box-shadow:0 8px 24px -8px rgba(0,0,0,.4);}
 
   .scanner-start-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:14px;background:none;border:0;font-family:var(--sans);padding:0;color:#fff;outline:none;}
   .scanner-start-btn .ring{width:72px;height:72px;border-radius:50%;border:2px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;transition:border-color .25s,transform .15s;position:relative;}
@@ -117,24 +90,24 @@
   .fullscreen-scanner .scanner-line{position:fixed;z-index:1001;top:50%;left:50%;width:calc(76% - 32px);height:2.5px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);border-radius:2px;filter:drop-shadow(0 0 8px rgba(255,255,255,.4));animation:scanMoveFS 2.4s ease-in-out infinite;pointer-events:none;}
   @keyframes scanMoveFS{0%,100%{transform:translate(-50%,-72px);}50%{transform:translate(-50%,72px);}}
   .fullscreen-scanner .scanner-hint{position:fixed;bottom:44px;left:0;right:0;text-align:center;color:rgba(255,255,255,.55);font-size:12px;font-weight:500;letter-spacing:.04em;z-index:1002;pointer-events:none;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .fullscreen-scanner .scanner-error{position:fixed;top:calc(env(safe-area-inset-top,0px) + 76px);left:50%;transform:translateX(-50%);z-index:1003;display:flex;align-items:center;gap:8px;background:rgba(176,58,46,.9);color:#fff;border-radius:999px;padding:10px 18px;font-size:13px;font-weight:600;letter-spacing:.01em;box-shadow:0 10px 30px -10px rgba(0,0,0,.5);animation:rise .3s var(--ease) both;}
+  .fullscreen-scanner .scanner-error svg{width:16px;height:16px;flex:0 0 auto;}
   .fullscreen-scanner .scanner-hint svg{width:14px;height:14px;opacity:.5;}
-  .fullscreen-scanner .scanner-close{position:fixed;top:60px;left:20px;z-index:1002;background:rgba(255,255,255,.12);border:0;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;transition:background .15s,transform .1s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+  .fullscreen-scanner .scanner-close{position:fixed;top:calc(env(safe-area-inset-top,0px) + 16px);left:16px;z-index:1002;background:rgba(255,255,255,.12);border:0;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;transition:background .15s,transform .1s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
   .fullscreen-scanner .scanner-close:hover{background:rgba(255,255,255,.2);}
   .fullscreen-scanner .scanner-close:active{transform:scale(.92);}
   .fullscreen-scanner .scanner-close svg{width:20px;height:20px;}
-  .fullscreen-scanner .scanner-flash{position:fixed;top:60px;right:20px;z-index:1002;background:rgba(255,255,255,.12);border:0;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;transition:background .15s,transform .1s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+  .fullscreen-scanner .scanner-flash{position:fixed;top:calc(env(safe-area-inset-top,0px) + 16px);right:16px;z-index:1002;background:rgba(255,255,255,.12);border:0;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;transition:background .15s,transform .1s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
   .fullscreen-scanner .scanner-flash:hover{background:rgba(255,255,255,.2);}
   .fullscreen-scanner .scanner-flash:active{transform:scale(.92);}
   .fullscreen-scanner .scanner-flash.on{background:rgba(255,230,140,.2);color:#FFE68C;}
-  .fullscreen-scanner .scanner-header{position:fixed;top:0;left:0;right:0;z-index:1001;padding:56px 68px 16px;text-align:center;}
+  .fullscreen-scanner .scanner-header{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:0;right:0;z-index:1001;padding:0 72px;text-align:center;pointer-events:none;}
   .fullscreen-scanner .scanner-header h1{margin:0;font-family:var(--serif);font-size:18px;font-weight:600;color:#fff;letter-spacing:-.005em;opacity:0;transition:opacity .5s ease;}
   .fullscreen-scanner .scanner-header p{margin:3px 0 0;font-size:12px;color:rgba(255,255,255,.45);opacity:0;transition:opacity .5s ease .1s;}
   .fullscreen-scanner.open .scanner-header h1,.fullscreen-scanner.open .scanner-header p{opacity:1;}
 
-  .detail-mode .device{margin:0 auto;}
-  .detail-mode body{display:flex;align-items:center;justify-content:center;padding:40px 16px;}
-  .fs-open .device{visibility:hidden;}
-  .fs-open .caption{visibility:hidden;}
+  .fs-open body{overflow:hidden;}
+  .fs-open .app-shell{display:none;}
 
   /* ═══════════ HERO ═══════════ */
   .hero-frame{border-radius:var(--r-lg);overflow:hidden;background:#EEECE6;border:1px solid var(--border);box-shadow:var(--shadow-frame);}
@@ -252,9 +225,9 @@
 
   /* ═══════════ STICKY ═══════════ */
   .sticky{
-    position:absolute;left:0;right:0;bottom:0;z-index:40;
+    position:fixed;left:0;right:0;bottom:0;z-index:40;
     background:rgba(255,255,255,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-    border-top:1px solid var(--border);padding:12px 18px 30px;box-shadow:0 -8px 24px rgba(23,24,26,.05);
+    border-top:1px solid var(--border);padding:12px 18px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 24px rgba(23,24,26,.05);
   }
   .sticky-inner{max-width:440px;margin:0 auto;display:flex;align-items:center;gap:12px;}
   .sticky-thumb{width:40px;height:40px;border-radius:8px;overflow:hidden;flex:0 0 auto;background:#EEECE6;border:1px solid var(--border);}
@@ -274,8 +247,6 @@
   .reveal{opacity:0;transform:translateY(14px);transition:opacity .55s ease,transform .55s var(--ease);}
   .reveal.in{opacity:1;transform:none;}
 
-  .caption{text-align:center;color:#8B8983;font-size:11px;letter-spacing:.06em;margin-top:22px;text-transform:uppercase;font-weight:500;}
-
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation:none!important;transition:none!important;}
     .reveal{opacity:1;transform:none;}
@@ -287,39 +258,20 @@
 </style>
 </head>
 <body>
-<div class="stage">
-  <div class="device">
-    <i class="side l1"></i><i class="side l2"></i><i class="side r1"></i>
-    <div class="screen">
-      <div class="island"></div>
-      <div class="home-ind"></div>
-
-      <div class="statusbar">
-        <span>9:41</span>
-        <span class="r">
-          <svg width="18" height="11" viewBox="0 0 18 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="6" rx="1"/><rect x="10" y="2.5" width="3" height="8.5" rx="1"/><rect x="15" y="0" width="3" height="11" rx="1"/></svg>
-          <svg width="17" height="11" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 4.2a10.5 10.5 0 0 1 14 0"/><path d="M4 7a7 7 0 0 1 9 0"/><path d="M6.6 9.7a3.5 3.5 0 0 1 3.8 0"/></svg>
-          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="1.6" fill="currentColor"/><path d="M23.2 4v4a2.2 2.2 0 0 0 0-4z" fill="currentColor" opacity=".4"/></svg>
-        </span>
-      </div>
-
-      <div class="scroll" id="scrollEl">
-        <div class="nav">
-          <div class="nl">
-            <button class="icon-btn" aria-label="Back">
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
-            </button>
-          </div>
-          <div class="nc"><b>ClosetCast</b><span class="loc">Soho · NYC</span></div>
-          <div class="nr"></div>
-        </div>
-        <div class="wrap" id="app"></div>
-      </div>
-
-      <div class="sticky" id="stickyBar"></div>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="tl">
+      <button class="icon-btn" id="backBtn" aria-label="Back">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
     </div>
+    <div class="tc"><b>ClosetCast</b><span class="loc">Soho · NYC</span></div>
+    <div class="tr"></div>
+  </header>
+  <div class="scroll" id="scrollEl">
+    <div class="wrap" id="app"></div>
   </div>
-  <div class="caption">ClosetCast · The Soho Edit</div>
+  <div class="sticky" id="stickyBar"></div>
 </div>
 
   <div class="fullscreen-scanner" id="fullscreenScanner">
@@ -345,6 +297,10 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><rect x="16" y="16" width="5" height="5"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
     Align barcode with the frame
   </p>
+  <div class="scanner-error" id="fsError" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="fsErrorMsg"></span>
+  </div>
 </div>
 
 <script>
@@ -366,6 +322,7 @@ const state = {
   error: "",
   revealed: false,
   autoStarted: false,
+  cameraStarted: false,
 };
 const app = document.getElementById("app");
 const scrollEl = document.getElementById("scrollEl");
@@ -471,8 +428,19 @@ function scannerView() {
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><rect x="16" y="16" width="5" height="5"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
         Align barcode with the frame
       </p>
+      ${state.error ? `<div class="scanner-screen-err">${icon("alert",14)} ${esc(state.error)}</div>` : ""}
     </div>
   `;
+}
+
+function showScannerError(msg) {
+  const box = document.getElementById("fsError");
+  const label = document.getElementById("fsErrorMsg");
+  if (!box || !label) return;
+  label.textContent = msg;
+  box.style.display = "flex";
+  clearTimeout(showScannerError._t);
+  showScannerError._t = setTimeout(() => { box.style.display = "none"; }, 2600);
 }
 
 function startFullscreenScanner() {
@@ -505,6 +473,7 @@ function startFullscreenScanner() {
     },
     () => {}
   ).then(() => {
+    state.cameraStarted = true;
     const track = codeReader?.getRunningTrackCameraCapabilities();
     if (track?.torchFeature?.isSupported()) {
       document.getElementById("fsFlashBtn").style.display = "flex";
@@ -537,15 +506,19 @@ function stopFullscreenScanner() {
   fsOverlay.style.display = "none";
   const flashBtn = document.getElementById("fsFlashBtn");
   if (flashBtn) { flashBtn.style.display = "none"; flashBtn.classList.remove("on"); }
+  const errBox = document.getElementById("fsError");
+  if (errBox) errBox.style.display = "none";
 }
 
 async function handleScan(code) {
   try {
     const res = await fetch(`/api/products/${encodeURIComponent(code)}`);
     if (!res.ok) {
-      state.error = "Product not found. Try again.";
-      state.screen = "scanner";
-      render();
+      state.error = "";
+      setTimeout(() => {
+        startFullscreenScanner();
+        showScannerError("Product not found — try again");
+      }, 250);
       return;
     }
     state.scannedItem = await res.json();
@@ -554,9 +527,11 @@ async function handleScan(code) {
     state.error = "";
     render();
   } catch {
-    state.error = "Network error. Try again.";
-    state.screen = "scanner";
-    render();
+    state.error = "";
+    setTimeout(() => {
+      startFullscreenScanner();
+      showScannerError("Network error — try again");
+    }, 250);
   }
 }
 
@@ -665,7 +640,7 @@ function render(){
     setTimeout(() => {
       document.getElementById("startFullscreen")?.addEventListener("click", startFullscreenScanner);
     }, 50);
-    if (!state.autoStarted) {
+    if (!state.autoStarted || state.cameraStarted) {
       state.autoStarted = true;
       setTimeout(startFullscreenScanner, 400);
     }
@@ -698,7 +673,7 @@ function bind(){
   const saveBtn = document.getElementById("saveBtn");
   if (saveBtn) saveBtn.onclick = handleSave;
 
-  const backBtn = document.querySelector(".nav .nl .icon-btn");
+  const backBtn = document.getElementById("backBtn");
   if (backBtn) backBtn.onclick = () => {
     if (state.screen === "detail") {
       stopFullscreenScanner();
