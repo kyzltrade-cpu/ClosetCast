@@ -76,15 +76,13 @@
 
   .fullscreen-scanner{position:fixed;inset:0;z-index:999;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .32s ease;}
   .fullscreen-scanner.open{opacity:1;}
-  .fullscreen-scanner video{width:100%;height:100%;object-fit:cover;pointer-events:none;}
+  .fullscreen-scanner video{width:100%;height:100%;object-fit:cover;pointer-events:none;transform:scaleX(-1);}
   .fullscreen-scanner video::-webkit-media-controls{display:none !important;}
   .fullscreen-scanner video::-webkit-media-controls-enclosure{display:none !important;}
   .fullscreen-scanner video::-webkit-media-controls-panel{display:none !important;}
   .fullscreen-scanner video::-webkit-media-controls-start-playback-button{display:none !important;}
   .fullscreen-scanner video::-webkit-media-controls-play-button{display:none !important;}
   .fullscreen-scanner video::-webkit-media-controls-pause-button{display:none !important;}
-  #fsReader{position:fixed;inset:0;z-index:998;overflow:hidden;}
-  #fsReader video{width:100%;height:100%;object-fit:cover;pointer-events:none;position:absolute;top:0;left:0;}
   .fullscreen-scanner #qr-shaded-region,.fullscreen-scanner [id="qr-shaded-region"],#qr-shaded-region{display:none !important;visibility:hidden !important;}
   .fullscreen-scanner .scanner-overlay{position:fixed;inset:0;pointer-events:none;z-index:1000;}
   .fullscreen-scanner .scanner-frame{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:76%;height:144px;}
@@ -275,7 +273,7 @@
     <h1>ClosetCast</h1>
     <p>Point camera at barcode</p>
   </div>
-  <div id="fsReader"></div>
+  <div id="fsReader" style="width:100%;height:100%;position:absolute;inset:0;"></div>
   <div class="scanner-overlay">
     <div class="scanner-frame"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i></div>
   </div>
@@ -429,12 +427,11 @@ let lastScan = { code: "", at: 0 };
 let scanInFlight = false;
 
 function startScanner(facing) {
-  if (fsQr) {
-    fsQr.stop().catch(() => {});
-    fsQr.clear();
-    fsQr = null;
+  if (!fsQr) {
+    const el = document.getElementById("fsReader");
+    el.innerHTML = "";
+    fsQr = new Html5Qrcode("fsReader");
   }
-  fsQr = new Html5Qrcode("fsReader");
   return fsQr.start(
     facing,
     {
@@ -488,9 +485,9 @@ function startFullscreenScanner() {
     }
   };
 
-  startScanner({ facingMode: { ideal: "environment" } })
+  startScanner({ facingMode: "environment" })
     .then(done)
-    .catch(() => startScanner({ facingMode: { ideal: "user" } })
+    .catch(() => startScanner({ facingMode: "user" })
       .then(done)
       .catch(failed));
 }
