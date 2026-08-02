@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
   :root{
     --bg:#FAFAF8; --surface:#FFFFFF; --ink:#17181A; --muted:#6B6D72;
@@ -83,6 +83,8 @@
   .fullscreen-scanner video::-webkit-media-controls-start-playback-button{display:none !important;}
   .fullscreen-scanner video::-webkit-media-controls-play-button{display:none !important;}
   .fullscreen-scanner video::-webkit-media-controls-pause-button{display:none !important;}
+  #fsReader{position:fixed;inset:0;z-index:998;overflow:hidden;}
+  #fsReader video{width:100%;height:100%;object-fit:cover;pointer-events:none;position:absolute;top:0;left:0;}
   .fullscreen-scanner .scanner-overlay{position:fixed;inset:0;pointer-events:none;z-index:1000;}
   .fullscreen-scanner .scanner-frame{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:76%;height:144px;}
   .fullscreen-scanner .scanner-frame .c{position:absolute;width:26px;height:26px;border-color:rgba(255,255,255,.9);border-style:solid;border-width:0;}
@@ -279,7 +281,7 @@
     <h1>ClosetCast</h1>
     <p>Point camera at barcode</p>
   </div>
-  <video id="fsVideo" playsinline muted autoplay webkit-playsinline disablepictureinpicture disable-remote-playback controlslist="nodownload noplaybackrate nofullscreen noremoteplayback"></video>
+  <div id="fsReader"></div>
   <div class="scanner-overlay">
     <div class="scanner-frame"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i></div>
   </div>
@@ -384,13 +386,9 @@ function fmtPhone(v){
 }
 
 let scannerActive = false;
-let stream = null;
-let scanTimer = null;
+let fsQr = null;
 const fsOverlay = document.getElementById("fullscreenScanner");
-const fsVideo = document.getElementById("fsVideo");
-const scanCanvas = document.createElement("canvas");
-const scanCtx = scanCanvas.getContext("2d", { willReadFrequently: true });
-const zxReader = new ZXingBrowser.BrowserMultiFormatReader();
+const fsReader = document.getElementById("fsReader");
 
 function scannerView() {
   return `
@@ -436,71 +434,33 @@ function showScannerError(msg) {
 let lastScan = { code: "", at: 0 };
 let scanInFlight = false;
 
-function startStream(constraints) {
-  return navigator.mediaDevices.getUserMedia({ video: constraints, audio: false })
-    .then(s => {
-      stream = s;
-      fsVideo.srcObject = s;
-      fsVideo.muted = true;
-      fsVideo.defaultMuted = true;
-      fsVideo.playsInline = true;
-      fsVideo.controls = false;
-      fsVideo.disablePictureInPicture = true;
-      fsVideo.setAttribute("muted", "");
-      fsVideo.setAttribute("playsinline", "");
-      fsVideo.removeAttribute("controls");
-      return ensurePlaying();
-    });
-}
-
-function ensurePlaying() {
-  return fsVideo.play().then(() => {
-    if (fsVideo.readyState < 2) {
-      if (!scannerActive) throw new Error("stopped");
-      return new Promise(resolve => setTimeout(resolve, 120)).then(ensurePlaying);
-    }
-  }).catch(() => {
-    if (!scannerActive) throw new Error("play blocked");
-    return new Promise(resolve => setTimeout(resolve, 150)).then(ensurePlaying);
-  });
-}
-
-function stopStream() {
-  if (stream) {
-    stream.getTracks().forEach(t => t.stop());
-    stream = null;
+function startScanner(facing) {
+  if (fsQr) {
+    fsQr.stop().catch(() => {});
+    fsQr.clear();
+    fsQr = null;
   }
-  if (fsVideo) fsVideo.srcObject = null;
-  fsVideo.removeAttribute("controls");
-  fsVideo.controls = false;
+  fsQr = new Html5Qrcode("fsReader");
+  return fsQr.start(
+    facing,
+    {
+      fps: 10,
+      qrbox: { width: 320, height: 140 },
+      aspectRatio: 1.0,
+      disableFlip: false,
+    },
+    text => onDecode(text),
+    () => {}
+  );
 }
 
-function startScanLoop() {
-  stopScanLoop();
-  scanTimer = setInterval(scanTick, 130);
-}
-
-function stopScanLoop() {
-  if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
-}
-
-function scanTick() {
-  if (scanInFlight) return;
-  const vw = fsVideo.videoWidth, vh = fsVideo.videoHeight;
-  if (!vw || !vh) { fsVideo.muted = true; fsVideo.play().catch(() => {}); return; }
-  const scale = Math.min(1, 480 / Math.max(vw, vh));
-  scanCanvas.width = Math.max(1, Math.round(vw * scale));
-  scanCanvas.height = Math.max(1, Math.round(vh * scale));
-  scanCtx.drawImage(fsVideo, 0, 0, scanCanvas.width, scanCanvas.height);
-  scanInFlight = true;
-  zxReader.decodeFromCanvas(scanCanvas)
-    .then(res => {
-      scanInFlight = false;
-      if (!res || !res.getText || !scannerActive) return;
-      const text = res.getText();
-      if (text) onDecode(text);
-    })
-    .catch(() => { scanInFlight = false; });
+function stopScanner() {
+  if (fsQr) {
+    fsQr.stop().catch(() => {});
+    fsQr.clear();
+    fsQr = null;
+  }
+  if (fsReader) fsReader.innerHTML = "";
 }
 
 function openOverlay() {
@@ -519,7 +479,6 @@ function startFullscreenScanner() {
   const done = () => {
     state.cameraStarted = true;
     state.error = "";
-    startScanLoop();
   };
   const failed = () => {
     stopFullscreenScanner();
@@ -529,9 +488,9 @@ function startFullscreenScanner() {
     }
   };
 
-  startStream({ facingMode: { ideal: "environment" } })
+  startScanner({ facingMode: { ideal: "environment" } })
     .then(done)
-    .catch(() => startStream({ facingMode: { ideal: "user" } })
+    .catch(() => startScanner({ facingMode: { ideal: "user" } })
       .then(done)
       .catch(failed));
 }
@@ -557,8 +516,7 @@ async function handleScan(code) {
 }
 
 function stopFullscreenScanner() {
-  stopScanLoop();
-  stopStream();
+  stopScanner();
   scannerActive = false;
   document.body.classList.remove("fs-open");
   fsOverlay.classList.remove("open");
