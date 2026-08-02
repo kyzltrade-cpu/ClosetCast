@@ -514,18 +514,7 @@ function onDecode(text) {
 }
 
 async function handleScan(code) {
-  let res;
-  try {
-    res = await fetch(`/api/products/${encodeURIComponent(code)}`);
-  } catch {
-    showScannerError("Network error — try again");
-    return;
-  }
-  if (!res.ok) {
-    showScannerError("Product not found — try again");
-    return;
-  }
-  const item = await res.json();
+  const item = { ...ITEM, barcode: code };
   stopFullscreenScanner();
   state.scannedItem = item;
   state.screen = "detail";
