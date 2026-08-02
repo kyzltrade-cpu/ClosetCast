@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
 <style>
   :root{
     --bg:#FAFAF8; --surface:#FFFFFF; --ink:#17181A; --muted:#6B6D72;
@@ -55,16 +55,7 @@
   .scanner-screen{position:relative;width:100%;height:calc(100dvh - 176px);min-height:420px;overflow:hidden;background:#0A0A0C;border-radius:var(--r-lg);}
   .scanner-screen video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
   .scanner-overlay{position:absolute;inset:0;pointer-events:none;}
-  .scanner-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72%;height:124px;}
-  .scanner-frame .c{position:absolute;width:24px;height:24px;border-color:rgba(255,255,255,.85);border-style:solid;border-width:0;}
-  .scanner-frame .c.tl{top:0;left:0;border-top-width:2.5px;border-left-width:2.5px;border-radius:4px 0 0 0;}
-  .scanner-frame .c.tr{top:0;right:0;border-top-width:2.5px;border-right-width:2.5px;border-radius:0 4px 0 0;}
-  .scanner-frame .c.bl{bottom:0;left:0;border-bottom-width:2.5px;border-left-width:2.5px;border-radius:0 0 0 4px;}
-  .scanner-frame .c.br{bottom:0;right:0;border-bottom-width:2.5px;border-right-width:2.5px;border-radius:0 0 4px 0;}
-  .scanner-frame .c::after{content:'';position:absolute;width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.08);filter:blur(6px);}
-  .scanner-mask{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72%;height:124px;box-shadow:0 0 0 999px rgba(0,0,0,.52);border-radius:4px;pointer-events:none;}
-  .scanner-line{position:absolute;left:50%;transform:translateX(-50%);top:0;width:calc(72% - 28px);height:2.5px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);border-radius:2px;filter:drop-shadow(0 0 6px rgba(255,255,255,.35));animation:scanMove 2.4s ease-in-out infinite;pointer-events:none;z-index:5;}
-  @keyframes scanMove{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(120px);}}
+  .scanner-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72%;height:124px;border:2px solid rgba(255,255,255,.75);border-radius:6px;}
   .scanner-hint{position:absolute;bottom:30px;left:0;right:0;text-align:center;color:rgba(255,255,255,.6);font-size:12px;font-weight:500;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:7px;}
   .scanner-screen-err{position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:7px;background:var(--red);color:#fff;border-radius:999px;padding:9px 16px;font-size:12px;font-weight:600;z-index:12;box-shadow:0 8px 24px -8px rgba(0,0,0,.4);}
 
@@ -78,17 +69,9 @@
 
   .fullscreen-scanner{position:fixed;inset:0;z-index:999;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .32s ease;}
   .fullscreen-scanner.open{opacity:1;}
-  .fullscreen-scanner video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+  .fullscreen-scanner video{width:100%;height:100%;object-fit:cover;}
   .fullscreen-scanner .scanner-overlay{position:fixed;inset:0;pointer-events:none;z-index:1000;}
-  .fullscreen-scanner .scanner-frame{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:76%;height:144px;}
-  .fullscreen-scanner .scanner-frame .c{position:absolute;width:28px;height:28px;border-color:rgba(255,255,255,.9);border-style:solid;border-width:0;}
-  .fullscreen-scanner .scanner-frame .c.tl{top:0;left:0;border-top-width:3px;border-left-width:3px;border-radius:4px 0 0 0;}
-  .fullscreen-scanner .scanner-frame .c.tr{top:0;right:0;border-top-width:3px;border-right-width:3px;border-radius:0 4px 0 0;}
-  .fullscreen-scanner .scanner-frame .c.bl{bottom:0;left:0;border-bottom-width:3px;border-left-width:3px;border-radius:0 0 0 4px;}
-  .fullscreen-scanner .scanner-frame .c.br{bottom:0;right:0;border-bottom-width:3px;border-right-width:3px;border-radius:0 0 4px 0;}
-  .fullscreen-scanner .scanner-mask{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:76%;height:144px;box-shadow:0 0 0 999px rgba(0,0,0,.48);border-radius:4px;pointer-events:none;z-index:1000;}
-  .fullscreen-scanner .scanner-line{position:fixed;z-index:1001;top:50%;left:50%;width:calc(76% - 32px);height:2.5px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);border-radius:2px;filter:drop-shadow(0 0 8px rgba(255,255,255,.4));animation:scanMoveFS 2.4s ease-in-out infinite;pointer-events:none;}
-  @keyframes scanMoveFS{0%,100%{transform:translate(-50%,-72px);}50%{transform:translate(-50%,72px);}}
+  .fullscreen-scanner .scanner-frame{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:76%;height:144px;border:2px solid rgba(255,255,255,.75);border-radius:8px;}
   .fullscreen-scanner .scanner-hint{position:fixed;bottom:44px;left:0;right:0;text-align:center;color:rgba(255,255,255,.55);font-size:12px;font-weight:500;letter-spacing:.04em;z-index:1002;pointer-events:none;display:flex;align-items:center;justify-content:center;gap:8px;}
   .fullscreen-scanner .scanner-error{position:fixed;top:calc(env(safe-area-inset-top,0px) + 76px);left:50%;transform:translateX(-50%);z-index:1003;display:flex;align-items:center;gap:8px;background:rgba(176,58,46,.9);color:#fff;border-radius:999px;padding:10px 18px;font-size:13px;font-weight:600;letter-spacing:.01em;box-shadow:0 10px 30px -10px rgba(0,0,0,.5);animation:rise .3s var(--ease) both;}
   .fullscreen-scanner .scanner-error svg{width:16px;height:16px;flex:0 0 auto;}
@@ -97,10 +80,6 @@
   .fullscreen-scanner .scanner-close:hover{background:rgba(255,255,255,.2);}
   .fullscreen-scanner .scanner-close:active{transform:scale(.92);}
   .fullscreen-scanner .scanner-close svg{width:20px;height:20px;}
-  .fullscreen-scanner .scanner-flash{position:fixed;top:calc(env(safe-area-inset-top,0px) + 16px);right:16px;z-index:1002;background:rgba(255,255,255,.12);border:0;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;transition:background .15s,transform .1s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
-  .fullscreen-scanner .scanner-flash:hover{background:rgba(255,255,255,.2);}
-  .fullscreen-scanner .scanner-flash:active{transform:scale(.92);}
-  .fullscreen-scanner .scanner-flash.on{background:rgba(255,230,140,.2);color:#FFE68C;}
   .fullscreen-scanner .scanner-header{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:0;right:0;z-index:1001;padding:0 72px;text-align:center;pointer-events:none;}
   .fullscreen-scanner .scanner-header h1{margin:0;font-family:var(--serif);font-size:18px;font-weight:600;color:#fff;letter-spacing:-.005em;opacity:0;transition:opacity .5s ease;}
   .fullscreen-scanner .scanner-header p{margin:3px 0 0;font-size:12px;color:rgba(255,255,255,.45);opacity:0;transition:opacity .5s ease .1s;}
@@ -278,20 +257,13 @@
   <button class="scanner-close" id="fsCloseBtn" aria-label="Close scanner">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
   </button>
-  <button class="scanner-flash" id="fsFlashBtn" aria-label="Toggle flash">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-  </button>
   <div class="scanner-header">
     <h1>ClosetCast</h1>
     <p>Point camera at barcode</p>
   </div>
-  <div id="fsReader" style="width:100%;height:100%;position:absolute;inset:0;"></div>
+  <video id="fsVideo" playsinline muted autoplay></video>
   <div class="scanner-overlay">
-    <div class="scanner-mask"></div>
-    <div class="scanner-frame">
-      <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
-    </div>
-    <div class="scanner-line"></div>
+    <div class="scanner-frame"></div>
   </div>
   <p class="scanner-hint">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><rect x="16" y="16" width="5" height="5"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
@@ -393,10 +365,14 @@ function fmtPhone(v){
   return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`;
 }
 
-let codeReader = null;
 let scannerActive = false;
-let torchOn = false;
+let stream = null;
+let scanTimer = null;
 const fsOverlay = document.getElementById("fullscreenScanner");
+const fsVideo = document.getElementById("fsVideo");
+const scanCanvas = document.createElement("canvas");
+const scanCtx = scanCanvas.getContext("2d", { willReadFrequently: true });
+const zxReader = new ZXingBrowser.BrowserMultiFormatReader();
 
 function scannerView() {
   return `
@@ -418,11 +394,7 @@ function scannerView() {
         <span class="label">Start Camera</span>
       </button>
       <div class="scanner-overlay">
-        <div class="scanner-mask"></div>
-        <div class="scanner-frame">
-          <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
-        </div>
-        <div class="scanner-line"></div>
+        <div class="scanner-frame"></div>
       </div>
       <p class="scanner-hint">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><rect x="16" y="16" width="5" height="5"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
@@ -444,41 +416,56 @@ function showScannerError(msg) {
 }
 
 let lastScan = { code: "", at: 0 };
-
-function getReader() {
-  if (codeReader) return codeReader;
-  const el = document.getElementById("fsReader");
-  el.innerHTML = "";
-  codeReader = new Html5Qrcode("fsReader");
-  return codeReader;
-}
-
 let scanInFlight = false;
 
-function tryStartCamera(constraints) {
-  return getReader().start(
-    constraints,
-    {
-      fps: 8,
-      qrbox: { width: 220, height: 90 },
-      formatsToSupport: [
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E,
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.EAN_8,
-      ],
-    },
-    onDecode,
-    () => {}
-  );
+function startStream(constraints) {
+  return navigator.mediaDevices.getUserMedia({ video: constraints, audio: false })
+    .then(s => {
+      stream = s;
+      fsVideo.srcObject = s;
+      return fsVideo.play();
+    });
+}
+
+function stopStream() {
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+  if (fsVideo) fsVideo.srcObject = null;
+}
+
+function startScanLoop() {
+  stopScanLoop();
+  scanTimer = setInterval(scanTick, 130);
+}
+
+function stopScanLoop() {
+  if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
+}
+
+function scanTick() {
+  if (scanInFlight) return;
+  const vw = fsVideo.videoWidth, vh = fsVideo.videoHeight;
+  if (!vw || !vh) return;
+  const scale = Math.min(1, 480 / Math.max(vw, vh));
+  scanCanvas.width = Math.max(1, Math.round(vw * scale));
+  scanCanvas.height = Math.max(1, Math.round(vh * scale));
+  scanCtx.drawImage(fsVideo, 0, 0, scanCanvas.width, scanCanvas.height);
+  scanInFlight = true;
+  zxReader.decodeFromCanvas(scanCanvas)
+    .then(res => {
+      scanInFlight = false;
+      if (!res || !res.getText || !scannerActive) return;
+      const text = res.getText();
+      if (text) onDecode(text);
+    })
+    .catch(() => { scanInFlight = false; });
 }
 
 function startFullscreenScanner() {
   if (scannerActive) return;
   scannerActive = true;
-  torchOn = false;
   scanInFlight = false;
   lastScan = { code: "", at: 0 };
   document.body.classList.add("fs-open");
@@ -487,10 +474,7 @@ function startFullscreenScanner() {
 
   const done = () => {
     state.cameraStarted = true;
-    const track = codeReader?.getRunningTrackCameraCapabilities();
-    if (track?.torchFeature?.isSupported()) {
-      document.getElementById("fsFlashBtn").style.display = "flex";
-    }
+    startScanLoop();
   };
   const failed = () => {
     stopFullscreenScanner();
@@ -498,9 +482,9 @@ function startFullscreenScanner() {
     if (state.screen === "scanner") render();
   };
 
-  tryStartCamera({ facingMode: "environment" })
+  startStream({ facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } })
     .then(done)
-    .catch(() => tryStartCamera({ facingMode: "user" })
+    .catch(() => startStream({ facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } })
       .then(done)
       .catch(failed));
 }
@@ -536,56 +520,13 @@ async function handleScan(code) {
   render();
 }
 
-function onDecode(text) {
-  const now = Date.now();
-  if (text === lastScan.code && now - lastScan.at < 2000) return;
-  lastScan = { code: text, at: now };
-  navigator.vibrate?.(50);
-  handleScan(text);
-}
-
-async function handleScan(code) {
-  let res;
-  try {
-    res = await fetch(`/api/products/${encodeURIComponent(code)}`);
-  } catch {
-    showScannerError("Network error — try again");
-    return;
-  }
-  if (!res.ok) {
-    showScannerError("Product not found — try again");
-    return;
-  }
-  const item = await res.json();
-  stopFullscreenScanner();
-  state.scannedItem = item;
-  state.screen = "detail";
-  state.revealed = true;
-  state.error = "";
-  render();
-}
-
-function toggleTorch() {
-  if (!codeReader) return;
-  const track = codeReader.getRunningTrackCameraCapabilities();
-  if (!track?.torchFeature?.isSupported()) return;
-  torchOn = !torchOn;
-  track.torchFeature.apply(torchOn);
-  document.getElementById("fsFlashBtn").classList.toggle("on", torchOn);
-}
-
 function stopFullscreenScanner() {
-  if (codeReader) {
-    codeReader.stop().catch(() => {});
-    codeReader = null;
-  }
-  torchOn = false;
+  stopScanLoop();
+  stopStream();
   scannerActive = false;
   document.body.classList.remove("fs-open");
   fsOverlay.classList.remove("open");
   fsOverlay.style.display = "none";
-  const flashBtn = document.getElementById("fsFlashBtn");
-  if (flashBtn) { flashBtn.style.display = "none"; flashBtn.classList.remove("on"); }
   const errBox = document.getElementById("fsError");
   if (errBox) errBox.style.display = "none";
 }
@@ -798,7 +739,6 @@ async function handleSave() {
 }
 
 document.getElementById("fsCloseBtn")?.addEventListener("click", stopFullscreenScanner);
-document.getElementById("fsFlashBtn")?.addEventListener("click", toggleTorch);
 render();
 </script>
 </body>
