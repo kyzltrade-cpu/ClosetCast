@@ -79,6 +79,10 @@
   .fullscreen-scanner video{width:100%;height:100%;object-fit:cover;pointer-events:none;}
   .fullscreen-scanner video::-webkit-media-controls{display:none !important;}
   .fullscreen-scanner video::-webkit-media-controls-enclosure{display:none !important;}
+  .fullscreen-scanner video::-webkit-media-controls-panel{display:none !important;}
+  .fullscreen-scanner video::-webkit-media-controls-start-playback-button{display:none !important;}
+  .fullscreen-scanner video::-webkit-media-controls-play-button{display:none !important;}
+  .fullscreen-scanner video::-webkit-media-controls-pause-button{display:none !important;}
   .fullscreen-scanner .scanner-overlay{position:fixed;inset:0;pointer-events:none;z-index:1000;}
   .fullscreen-scanner .scanner-frame{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:76%;height:144px;}
   .fullscreen-scanner .scanner-frame .c{position:absolute;width:26px;height:26px;border-color:rgba(255,255,255,.9);border-style:solid;border-width:0;}
@@ -275,7 +279,7 @@
     <h1>ClosetCast</h1>
     <p>Point camera at barcode</p>
   </div>
-  <video id="fsVideo" playsinline muted autoplay disablepictureinpicture disable-remote-playback controlslist="nodownload noplaybackrate nofullscreen noremoteplayback"></video>
+  <video id="fsVideo" playsinline muted autoplay webkit-playsinline disablepictureinpicture disable-remote-playback controlslist="nodownload noplaybackrate nofullscreen noremoteplayback"></video>
   <div class="scanner-overlay">
     <div class="scanner-frame"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i></div>
   </div>
@@ -437,8 +441,28 @@ function startStream(constraints) {
     .then(s => {
       stream = s;
       fsVideo.srcObject = s;
-      return fsVideo.play();
+      fsVideo.muted = true;
+      fsVideo.defaultMuted = true;
+      fsVideo.playsInline = true;
+      fsVideo.controls = false;
+      fsVideo.disablePictureInPicture = true;
+      fsVideo.setAttribute("muted", "");
+      fsVideo.setAttribute("playsinline", "");
+      fsVideo.removeAttribute("controls");
+      return ensurePlaying();
     });
+}
+
+function ensurePlaying() {
+  return fsVideo.play().then(() => {
+    if (fsVideo.readyState < 2) {
+      if (!scannerActive) throw new Error("stopped");
+      return new Promise(resolve => setTimeout(resolve, 120)).then(ensurePlaying);
+    }
+  }).catch(() => {
+    if (!scannerActive) throw new Error("play blocked");
+    return new Promise(resolve => setTimeout(resolve, 150)).then(ensurePlaying);
+  });
 }
 
 function stopStream() {
@@ -447,6 +471,8 @@ function stopStream() {
     stream = null;
   }
   if (fsVideo) fsVideo.srcObject = null;
+  fsVideo.removeAttribute("controls");
+  fsVideo.controls = false;
 }
 
 function startScanLoop() {
@@ -461,7 +487,7 @@ function stopScanLoop() {
 function scanTick() {
   if (scanInFlight) return;
   const vw = fsVideo.videoWidth, vh = fsVideo.videoHeight;
-  if (!vw || !vh) return;
+  if (!vw || !vh) { fsVideo.muted = true; fsVideo.play().catch(() => {}); return; }
   const scale = Math.min(1, 480 / Math.max(vw, vh));
   scanCanvas.width = Math.max(1, Math.round(vw * scale));
   scanCanvas.height = Math.max(1, Math.round(vh * scale));
@@ -477,28 +503,35 @@ function scanTick() {
     .catch(() => { scanInFlight = false; });
 }
 
+function openOverlay() {
+  document.body.classList.add("fs-open");
+  fsOverlay.style.display = "flex";
+  requestAnimationFrame(() => fsOverlay.classList.add("open"));
+}
+
 function startFullscreenScanner() {
   if (scannerActive) return;
   scannerActive = true;
   scanInFlight = false;
   lastScan = { code: "", at: 0 };
-  document.body.classList.add("fs-open");
-  fsOverlay.style.display = "flex";
-  requestAnimationFrame(() => fsOverlay.classList.add("open"));
+  openOverlay();
 
   const done = () => {
     state.cameraStarted = true;
+    state.error = "";
     startScanLoop();
   };
   const failed = () => {
     stopFullscreenScanner();
-    state.error = "Camera not available. Please check permissions.";
-    if (state.screen === "scanner") render();
+    if (state.screen === "scanner") {
+      state.error = "Camera not available. Please check permissions.";
+      render();
+    }
   };
 
-  startStream({ facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } })
+  startStream({ facingMode: { ideal: "environment" } })
     .then(done)
-    .catch(() => startStream({ facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } })
+    .catch(() => startStream({ facingMode: { ideal: "user" } })
       .then(done)
       .catch(failed));
 }
@@ -643,7 +676,7 @@ function render(){
       setTimeout(startFullscreenScanner, 120);
     } else if (!state.autoStarted) {
       state.autoStarted = true;
-      setTimeout(startFullscreenScanner, 150);
+      setTimeout(openOverlay, 150);
     }
     return;
   }
@@ -742,6 +775,14 @@ async function handleSave() {
 }
 
 document.getElementById("fsCloseBtn")?.addEventListener("click", stopFullscreenScanner);
+
+const fsGesture = e => {
+  if (e.target.closest("#fsCloseBtn")) return;
+  if (state.autoStarted && !state.cameraStarted && !scannerActive) startFullscreenScanner();
+};
+fsOverlay.addEventListener("touchstart", fsGesture, { once: true });
+fsOverlay.addEventListener("click", fsGesture, { once: true });
+
 render();
 </script>
 </body>
