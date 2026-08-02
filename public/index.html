@@ -55,7 +55,12 @@
   .scanner-screen{position:relative;width:100%;height:calc(100dvh - 176px);min-height:420px;overflow:hidden;background:#0A0A0C;border-radius:var(--r-lg);}
   .scanner-screen video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
   .scanner-overlay{position:absolute;inset:0;pointer-events:none;}
-  .scanner-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72%;height:124px;border:2px solid rgba(255,255,255,.75);border-radius:6px;}
+  .scanner-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72%;height:124px;}
+  .scanner-frame .c{position:absolute;width:22px;height:22px;border-color:rgba(255,255,255,.9);border-style:solid;border-width:0;}
+  .scanner-frame .c.tl{top:0;left:0;border-top-width:3px;border-left-width:3px;border-top-left-radius:5px;}
+  .scanner-frame .c.tr{top:0;right:0;border-top-width:3px;border-right-width:3px;border-top-right-radius:5px;}
+  .scanner-frame .c.bl{bottom:0;left:0;border-bottom-width:3px;border-left-width:3px;border-bottom-left-radius:5px;}
+  .scanner-frame .c.br{bottom:0;right:0;border-bottom-width:3px;border-right-width:3px;border-bottom-right-radius:5px;}
   .scanner-hint{position:absolute;bottom:30px;left:0;right:0;text-align:center;color:rgba(255,255,255,.6);font-size:12px;font-weight:500;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:7px;}
   .scanner-screen-err{position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:7px;background:var(--red);color:#fff;border-radius:999px;padding:9px 16px;font-size:12px;font-weight:600;z-index:12;box-shadow:0 8px 24px -8px rgba(0,0,0,.4);}
 
@@ -71,7 +76,12 @@
   .fullscreen-scanner.open{opacity:1;}
   .fullscreen-scanner video{width:100%;height:100%;object-fit:cover;}
   .fullscreen-scanner .scanner-overlay{position:fixed;inset:0;pointer-events:none;z-index:1000;}
-  .fullscreen-scanner .scanner-frame{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:76%;height:144px;border:2px solid rgba(255,255,255,.75);border-radius:8px;}
+  .fullscreen-scanner .scanner-frame{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:76%;height:144px;}
+  .fullscreen-scanner .scanner-frame .c{position:absolute;width:26px;height:26px;border-color:rgba(255,255,255,.9);border-style:solid;border-width:0;}
+  .fullscreen-scanner .scanner-frame .c.tl{top:0;left:0;border-top-width:3px;border-left-width:3px;border-top-left-radius:5px;}
+  .fullscreen-scanner .scanner-frame .c.tr{top:0;right:0;border-top-width:3px;border-right-width:3px;border-top-right-radius:5px;}
+  .fullscreen-scanner .scanner-frame .c.bl{bottom:0;left:0;border-bottom-width:3px;border-left-width:3px;border-bottom-left-radius:5px;}
+  .fullscreen-scanner .scanner-frame .c.br{bottom:0;right:0;border-bottom-width:3px;border-right-width:3px;border-bottom-right-radius:5px;}
   .fullscreen-scanner .scanner-hint{position:fixed;bottom:44px;left:0;right:0;text-align:center;color:rgba(255,255,255,.55);font-size:12px;font-weight:500;letter-spacing:.04em;z-index:1002;pointer-events:none;display:flex;align-items:center;justify-content:center;gap:8px;}
   .fullscreen-scanner .scanner-error{position:fixed;top:calc(env(safe-area-inset-top,0px) + 76px);left:50%;transform:translateX(-50%);z-index:1003;display:flex;align-items:center;gap:8px;background:rgba(176,58,46,.9);color:#fff;border-radius:999px;padding:10px 18px;font-size:13px;font-weight:600;letter-spacing:.01em;box-shadow:0 10px 30px -10px rgba(0,0,0,.5);animation:rise .3s var(--ease) both;}
   .fullscreen-scanner .scanner-error svg{width:16px;height:16px;flex:0 0 auto;}
@@ -263,7 +273,7 @@
   </div>
   <video id="fsVideo" playsinline muted autoplay></video>
   <div class="scanner-overlay">
-    <div class="scanner-frame"></div>
+    <div class="scanner-frame"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i></div>
   </div>
   <p class="scanner-hint">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><rect x="16" y="16" width="5" height="5"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
@@ -394,7 +404,7 @@ function scannerView() {
         <span class="label">Start Camera</span>
       </button>
       <div class="scanner-overlay">
-        <div class="scanner-frame"></div>
+        <div class="scanner-frame"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i></div>
       </div>
       <p class="scanner-hint">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><rect x="16" y="16" width="5" height="5"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
