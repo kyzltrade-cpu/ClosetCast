@@ -53,7 +53,9 @@
 
   /* ═══════════ SCANNER ═══════════ */
   .scanner-screen{position:relative;width:100%;height:calc(100dvh - 176px);min-height:420px;overflow:hidden;background:#0A0A0C;border-radius:var(--r-lg);}
-  .scanner-screen video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+  .scanner-screen video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);pointer-events:none;}
+  .scanner-screen video::-webkit-media-controls{display:none !important;}
+  .scanner-screen video::-webkit-media-controls-enclosure{display:none !important;}
   .scanner-overlay{position:absolute;inset:0;pointer-events:none;}
   .scanner-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72%;height:124px;}
   .scanner-frame .c{position:absolute;width:22px;height:22px;border-color:rgba(255,255,255,.9);border-style:solid;border-width:0;}
@@ -74,7 +76,9 @@
 
   .fullscreen-scanner{position:fixed;inset:0;z-index:999;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .32s ease;}
   .fullscreen-scanner.open{opacity:1;}
-  .fullscreen-scanner video{width:100%;height:100%;object-fit:cover;}
+  .fullscreen-scanner video{width:100%;height:100%;object-fit:cover;pointer-events:none;}
+  .fullscreen-scanner video::-webkit-media-controls{display:none !important;}
+  .fullscreen-scanner video::-webkit-media-controls-enclosure{display:none !important;}
   .fullscreen-scanner .scanner-overlay{position:fixed;inset:0;pointer-events:none;z-index:1000;}
   .fullscreen-scanner .scanner-frame{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:76%;height:144px;}
   .fullscreen-scanner .scanner-frame .c{position:absolute;width:26px;height:26px;border-color:rgba(255,255,255,.9);border-style:solid;border-width:0;}
@@ -271,7 +275,7 @@
     <h1>ClosetCast</h1>
     <p>Point camera at barcode</p>
   </div>
-  <video id="fsVideo" playsinline muted autoplay></video>
+  <video id="fsVideo" playsinline muted autoplay disablepictureinpicture disable-remote-playback controlslist="nodownload noplaybackrate nofullscreen noremoteplayback"></video>
   <div class="scanner-overlay">
     <div class="scanner-frame"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i></div>
   </div>
