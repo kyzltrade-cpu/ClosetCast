@@ -85,6 +85,7 @@
   .fullscreen-scanner video::-webkit-media-controls-pause-button{display:none !important;}
   #fsReader{position:fixed;inset:0;z-index:998;overflow:hidden;}
   #fsReader video{width:100%;height:100%;object-fit:cover;pointer-events:none;position:absolute;top:0;left:0;}
+  .fullscreen-scanner #qr-shaded-region,.fullscreen-scanner [id="qr-shaded-region"],#qr-shaded-region{display:none !important;visibility:hidden !important;}
   .fullscreen-scanner .scanner-overlay{position:fixed;inset:0;pointer-events:none;z-index:1000;}
   .fullscreen-scanner .scanner-frame{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:76%;height:144px;}
   .fullscreen-scanner .scanner-frame .c{position:absolute;width:26px;height:26px;border-color:rgba(255,255,255,.9);border-style:solid;border-width:0;}
@@ -96,10 +97,6 @@
   .fullscreen-scanner .scanner-error{position:fixed;top:calc(env(safe-area-inset-top,0px) + 76px);left:50%;transform:translateX(-50%);z-index:1003;display:flex;align-items:center;gap:8px;background:rgba(176,58,46,.9);color:#fff;border-radius:999px;padding:10px 18px;font-size:13px;font-weight:600;letter-spacing:.01em;box-shadow:0 10px 30px -10px rgba(0,0,0,.5);animation:rise .3s var(--ease) both;}
   .fullscreen-scanner .scanner-error svg{width:16px;height:16px;flex:0 0 auto;}
   .fullscreen-scanner .scanner-hint svg{width:14px;height:14px;opacity:.5;}
-  .fullscreen-scanner .scanner-close{position:fixed;top:calc(env(safe-area-inset-top,0px) + 16px);left:16px;z-index:1002;background:rgba(255,255,255,.12);border:0;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;transition:background .15s,transform .1s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
-  .fullscreen-scanner .scanner-close:hover{background:rgba(255,255,255,.2);}
-  .fullscreen-scanner .scanner-close:active{transform:scale(.92);}
-  .fullscreen-scanner .scanner-close svg{width:20px;height:20px;}
   .fullscreen-scanner .scanner-header{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:0;right:0;z-index:1001;padding:0 72px;text-align:center;pointer-events:none;}
   .fullscreen-scanner .scanner-header h1{margin:0;font-family:var(--serif);font-size:18px;font-weight:600;color:#fff;letter-spacing:-.005em;opacity:0;transition:opacity .5s ease;}
   .fullscreen-scanner .scanner-header p{margin:3px 0 0;font-size:12px;color:rgba(255,255,255,.45);opacity:0;transition:opacity .5s ease .1s;}
@@ -274,9 +271,6 @@
 </div>
 
   <div class="fullscreen-scanner" id="fullscreenScanner">
-  <button class="scanner-close" id="fsCloseBtn" aria-label="Close scanner">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-  </button>
   <div class="scanner-header">
     <h1>ClosetCast</h1>
     <p>Point camera at barcode</p>
@@ -444,10 +438,16 @@ function startScanner(facing) {
   return fsQr.start(
     facing,
     {
-      fps: 10,
-      qrbox: { width: 320, height: 140 },
-      aspectRatio: 1.0,
-      disableFlip: false,
+      fps: 8,
+      qrbox: { width: 220, height: 90 },
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.EAN_8,
+      ],
     },
     text => onDecode(text),
     () => {}
@@ -630,11 +630,14 @@ function render(){
     setTimeout(() => {
       document.getElementById("startFullscreen")?.addEventListener("click", startFullscreenScanner);
     }, 50);
-    if (state.autoStarted && state.cameraStarted) {
+    if (state.autoStarted) {
       setTimeout(startFullscreenScanner, 120);
-    } else if (!state.autoStarted) {
+    } else {
       state.autoStarted = true;
-      setTimeout(openOverlay, 150);
+      setTimeout(() => {
+        openOverlay();
+        startFullscreenScanner();
+      }, 150);
     }
     return;
   }
@@ -731,15 +734,6 @@ async function handleSave() {
   state.submitting = false;
   render();
 }
-
-document.getElementById("fsCloseBtn")?.addEventListener("click", stopFullscreenScanner);
-
-const fsGesture = e => {
-  if (e.target.closest("#fsCloseBtn")) return;
-  if (state.autoStarted && !state.cameraStarted && !scannerActive) startFullscreenScanner();
-};
-fsOverlay.addEventListener("touchstart", fsGesture, { once: true });
-fsOverlay.addEventListener("click", fsGesture, { once: true });
 
 render();
 </script>
