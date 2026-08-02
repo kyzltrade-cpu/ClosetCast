@@ -80,7 +80,7 @@
   .wrap{max-width:440px;margin:0 auto;padding:20px 20px 132px;}
 
   /* ═══════════ SCANNER ═══════════ */
-  .scanner-screen{position:relative;width:100%;aspect-ratio:4/5;overflow:hidden;background:#0A0A0C;border-radius:var(--r-lg);}
+  .scanner-screen{position:relative;width:100%;height:600px;max-height:calc(100vh - 60px);overflow:hidden;background:#0A0A0C;border-radius:var(--r-lg);}
   .scanner-screen video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
   .scanner-overlay{position:absolute;inset:0;pointer-events:none;}
   .scanner-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:72%;height:124px;}
@@ -365,6 +365,7 @@ const state = {
   submitting: false,
   error: "",
   revealed: false,
+  autoStarted: false,
 };
 const app = document.getElementById("app");
 const scrollEl = document.getElementById("scrollEl");
@@ -664,6 +665,10 @@ function render(){
     setTimeout(() => {
       document.getElementById("startFullscreen")?.addEventListener("click", startFullscreenScanner);
     }, 50);
+    if (!state.autoStarted) {
+      state.autoStarted = true;
+      setTimeout(startFullscreenScanner, 400);
+    }
     return;
   }
   app.innerHTML = state.screen === "detail" ? scanView() : confirmView();
