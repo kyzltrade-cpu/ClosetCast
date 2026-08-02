@@ -443,20 +443,24 @@ function showScannerError(msg) {
   showScannerError._t = setTimeout(() => { box.style.display = "none"; }, 2600);
 }
 
-function startFullscreenScanner() {
-  if (scannerActive) return;
-  scannerActive = true;
-  torchOn = false;
-  document.body.classList.add("fs-open");
-  fsOverlay.style.display = "flex";
-  requestAnimationFrame(() => fsOverlay.classList.add("open"));
+let lastScan = { code: "", at: 0 };
 
+function getReader() {
+  if (codeReader) return codeReader;
+  const el = document.getElementById("fsReader");
+  el.innerHTML = "";
   codeReader = new Html5Qrcode("fsReader");
-  codeReader.start(
-    { facingMode: "environment" },
+  return codeReader;
+}
+
+let scanInFlight = false;
+
+function tryStartCamera(constraints) {
+  return getReader().start(
+    constraints,
     {
-      fps: 10,
-      qrbox: { width: 250, height: 100 },
+      fps: 8,
+      qrbox: { width: 220, height: 90 },
       formatsToSupport: [
         Html5QrcodeSupportedFormats.EAN_13,
         Html5QrcodeSupportedFormats.UPC_A,
@@ -466,23 +470,99 @@ function startFullscreenScanner() {
         Html5QrcodeSupportedFormats.EAN_8,
       ],
     },
-    (text) => {
-      navigator.vibrate?.(50);
-      stopFullscreenScanner();
-      handleScan(text);
-    },
+    onDecode,
     () => {}
-  ).then(() => {
+  );
+}
+
+function startFullscreenScanner() {
+  if (scannerActive) return;
+  scannerActive = true;
+  torchOn = false;
+  scanInFlight = false;
+  lastScan = { code: "", at: 0 };
+  document.body.classList.add("fs-open");
+  fsOverlay.style.display = "flex";
+  requestAnimationFrame(() => fsOverlay.classList.add("open"));
+
+  const done = () => {
     state.cameraStarted = true;
     const track = codeReader?.getRunningTrackCameraCapabilities();
     if (track?.torchFeature?.isSupported()) {
       document.getElementById("fsFlashBtn").style.display = "flex";
     }
-  }).catch(() => {
+  };
+  const failed = () => {
     stopFullscreenScanner();
     state.error = "Camera not available. Please check permissions.";
     if (state.screen === "scanner") render();
-  });
+  };
+
+  tryStartCamera({ facingMode: "environment" })
+    .then(done)
+    .catch(() => tryStartCamera({ facingMode: "user" })
+      .then(done)
+      .catch(failed));
+}
+
+function onDecode(text) {
+  const now = Date.now();
+  if (scanInFlight) return;
+  if (text === lastScan.code && now - lastScan.at < 2000) return;
+  lastScan = { code: text, at: now };
+  navigator.vibrate?.(50);
+  scanInFlight = true;
+  handleScan(text).finally(() => { scanInFlight = false; });
+}
+
+async function handleScan(code) {
+  let res;
+  try {
+    res = await fetch(`/api/products/${encodeURIComponent(code)}`);
+  } catch {
+    showScannerError("Network error — try again");
+    return;
+  }
+  if (!res.ok) {
+    showScannerError("Product not found — try again");
+    return;
+  }
+  const item = await res.json();
+  stopFullscreenScanner();
+  state.scannedItem = item;
+  state.screen = "detail";
+  state.revealed = true;
+  state.error = "";
+  render();
+}
+
+function onDecode(text) {
+  const now = Date.now();
+  if (text === lastScan.code && now - lastScan.at < 2000) return;
+  lastScan = { code: text, at: now };
+  navigator.vibrate?.(50);
+  handleScan(text);
+}
+
+async function handleScan(code) {
+  let res;
+  try {
+    res = await fetch(`/api/products/${encodeURIComponent(code)}`);
+  } catch {
+    showScannerError("Network error — try again");
+    return;
+  }
+  if (!res.ok) {
+    showScannerError("Product not found — try again");
+    return;
+  }
+  const item = await res.json();
+  stopFullscreenScanner();
+  state.scannedItem = item;
+  state.screen = "detail";
+  state.revealed = true;
+  state.error = "";
+  render();
 }
 
 function toggleTorch() {
@@ -508,31 +588,6 @@ function stopFullscreenScanner() {
   if (flashBtn) { flashBtn.style.display = "none"; flashBtn.classList.remove("on"); }
   const errBox = document.getElementById("fsError");
   if (errBox) errBox.style.display = "none";
-}
-
-async function handleScan(code) {
-  try {
-    const res = await fetch(`/api/products/${encodeURIComponent(code)}`);
-    if (!res.ok) {
-      state.error = "";
-      setTimeout(() => {
-        startFullscreenScanner();
-        showScannerError("Product not found — try again");
-      }, 250);
-      return;
-    }
-    state.scannedItem = await res.json();
-    state.screen = "detail";
-    state.revealed = true;
-    state.error = "";
-    render();
-  } catch {
-    state.error = "";
-    setTimeout(() => {
-      startFullscreenScanner();
-      showScannerError("Network error — try again");
-    }, 250);
-  }
 }
 
 function scanView() {
@@ -640,9 +695,11 @@ function render(){
     setTimeout(() => {
       document.getElementById("startFullscreen")?.addEventListener("click", startFullscreenScanner);
     }, 50);
-    if (!state.autoStarted || state.cameraStarted) {
+    if (state.autoStarted && state.cameraStarted) {
+      setTimeout(startFullscreenScanner, 120);
+    } else if (!state.autoStarted) {
       state.autoStarted = true;
-      setTimeout(startFullscreenScanner, 400);
+      setTimeout(startFullscreenScanner, 150);
     }
     return;
   }
