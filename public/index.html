@@ -703,7 +703,6 @@ function phoneE164() {
 
 function scanView() {
   const item = currentItem();
-  const valid = phoneValid();
   return `
     <div class="hero-frame rise"><div class="hero">
       ${jacketArt()}
@@ -722,31 +721,6 @@ function scanView() {
       <div class="trust-item"><span class="ic">${icon("message",14)}</span> One reminder text, sent once</div>
       <div class="trust-item"><span class="ic">${icon("lock",14)}</span> No spam — ever</div>
       <div class="trust-item"><span class="ic">${icon("x",14)}</span> Cancel anytime, no questions</div>
-    </div>
-
-    <div class="phone-reveal open" id="phonePanel">
-      ${state.committing ? `
-        <div class="phone-ask">Where should we send it?</div>
-        <div class="phone-sub">Just like texting a friend — we'll use this only for updates on this piece.</div>
-        <div class="phone-field">
-          <button type="button" class="phone-code" id="phoneCode" aria-haspopup="listbox" aria-label="Country code">
-            ${esc(selectedCountry().code)}${icon("chev",13)}
-          </button>
-          <input id="phone" class="input" type="tel" inputmode="tel" autocomplete="tel"
-            placeholder="${esc(placeholderFor(state.country))}" value="${esc(state.phone)}" aria-label="Mobile phone number">
-        </div>
-        <div class="inline-reassure">${icon("shield",13)} We'll never sell or share your number.</div>
-        <button id="saveBtn" class="cta-primary" ${valid && !state.submitting ? "" : "disabled"} aria-label="Text me this item">
-          ${state.submitting ? `<span class="spin"></span>Saving…` : `${icon("send",15)} Text Me This Item`}
-        </button>
-        ${state.error ? `<div class="err" role="alert">${icon("alert",15)} ${esc(state.error)}</div>` : ""}
-        <p class="fine">One confirmation text now · one reminder in a couple of days.</p>
-      ` : `
-        <button id="commitBtn" class="cta-primary" aria-label="Text me this item">
-          ${icon("send",15)} Text Me This Item
-        </button>
-        <p class="fine">One confirmation text now · one reminder in a couple of days.</p>
-      `}
     </div>
 
     <div class="divider reveal"></div>
@@ -834,31 +808,21 @@ function renderSticky(){
         <div class="sticky-name">${esc(item.name)}</div>
         <div class="sticky-price">$${esc(item.price)} · Size ${esc(item.size)}</div>
       </div>
-      <button type="button" class="sticky-btn" id="stickySaveBtn" aria-label="Save this item">
-        ${icon("bookmark",14)} Save
+      <button type="button" class="sticky-btn" id="stickyBuyBtn" aria-label="Buy this item">
+        Buy Now
       </button>
     </div>`;
-  const s = document.getElementById("stickySaveBtn");
-  if (s) s.onclick = () => {
-    if (state.committing) { handleSave(); return; }
-    state.committing = true;
-    state.error = "";
-    render();
-    requestAnimationFrame(() => revealPhoneField());
-  };
+  const s = document.getElementById("stickyBuyBtn");
+  if (s) s.onclick = () => revealExpressCheckout();
 }
 
-function revealPhoneField() {
-  const el = document.getElementById("phone");
+function revealExpressCheckout() {
+  const el = document.getElementById("expressCheckoutWrap");
   const sc = document.getElementById("scrollEl");
   if (!el || !sc) return;
   const r = el.getBoundingClientRect();
   const sr = sc.getBoundingClientRect();
   sc.scrollTop = Math.max(0, sc.scrollTop + (r.top - sr.top - 90));
-  requestAnimationFrame(() => {
-    const input = document.getElementById("phone");
-    if (input) input.focus({ preventScroll: true });
-  });
 }
 
 function render(){
@@ -894,35 +858,6 @@ function render(){
 }
 
 function bind(){
-  const phoneEl = document.getElementById("phone");
-  if (phoneEl) {
-    const reapply = () => {
-      const valid = phoneValid();
-      const s = document.getElementById("saveBtn");
-      if (s) s.disabled = !valid || state.submitting;
-      if (state.error) state.error = "";
-    };
-    phoneEl.oninput = e => {
-      const c = selectedCountry();
-      state.phone = fmtPhone(e.target.value, c.len);
-      e.target.value = state.phone;
-      reapply();
-    };
-    phoneEl.onkeydown = e => { if (e.key === "Enter") handleSave(); };
-    const codeEl = document.getElementById("phoneCode");
-    if (codeEl) codeEl.onclick = openCountrySheet;
-  }
-  const saveBtn = document.getElementById("saveBtn");
-  if (saveBtn) saveBtn.onclick = handleSave;
-
-  const commitBtn = document.getElementById("commitBtn");
-  if (commitBtn) commitBtn.onclick = () => {
-    state.committing = true;
-    state.error = "";
-    render();
-    requestAnimationFrame(() => revealPhoneField());
-  };
-
   const backBtn = document.getElementById("backBtn");
   if (backBtn) backBtn.onclick = () => {
     if (state.screen === "detail") {
@@ -1104,7 +1039,6 @@ document.getElementById("countryList").addEventListener("click", e => {
   state.phone = "";
   closeCountrySheet();
   render();
-  requestAnimationFrame(() => revealPhoneField());
 });
 
 const demoScan = () => {
