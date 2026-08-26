@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://js.stripe.com/v3/"></script>
 <style>
   :root{
     --bg:#FAFAF8; --surface:#FFFFFF; --ink:#17181A; --muted:#6B6D72;
@@ -172,6 +173,12 @@
   .fine{font-size:11.5px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.55;}
   .err{margin-top:12px;padding:11px 13px;border-radius:var(--r-md);background:var(--red-soft);border:1px solid #F0D2CC;color:var(--red);font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;}
 
+  /* ═══════════ EXPRESS CHECKOUT ═══════════ */
+  .express-checkout{margin-bottom:24px;}
+  .express-checkout .eyebrow{text-align:center;}
+  #expressCheckoutElement{min-height:44px;}
+  .express-checkout .fine{margin-top:10px;}
+
   /* ═══════════ CONFIRMATION (rich) ═══════════ */
   .confirm{padding:46px 24px 30px;text-align:center;animation:rise .55s var(--ease) both;}
   .ok{
@@ -305,6 +312,7 @@ const ITEM = {
 const state = {
   screen: "scanner",
   scannedItem: null,
+  paidItem: null,
   phone: "",
   submitting: false,
   error: "",
@@ -545,6 +553,14 @@ function scanView() {
 
     <div class="divider reveal"></div>
 
+    <div class="express-checkout reveal" id="expressCheckoutWrap">
+      <div class="eyebrow">Pay now</div>
+      <div id="expressCheckoutElement"></div>
+      <p class="fine">Apple Pay, Google Pay, or Link — pay from your phone, no account needed.</p>
+    </div>
+
+    <div class="divider reveal"></div>
+
     <div class="trust reveal">
       <div class="trust-item"><span class="ic">${icon("message",14)}</span> One reminder text, sent once</div>
       <div class="trust-item"><span class="ic">${icon("lock",14)}</span> No spam — ever</div>
@@ -605,6 +621,34 @@ function confirmView(){
   `;
 }
 
+function paidView(){
+  const item = state.paidItem || ITEM;
+  return `
+    <div class="confirm">
+      <div class="ok">${icon("check",26)}</div>
+      <h2>Payment successful</h2>
+      <p class="sub">You just bought this piece from ${esc(item.store)}. A receipt is on its way from Stripe.</p>
+
+      <div class="saved-row">
+        <div class="thumb">${jacketArt()}</div>
+        <div class="s-meta">
+          <div class="s-name">${esc(item.name)}</div>
+          <div class="s-sub">${esc(item.color)} · Size ${esc(item.size)}</div>
+        </div>
+        <span class="s-price">$${esc(item.price)}</span>
+      </div>
+
+      <button class="cta-primary" id="scanNewPaid" aria-label="Scan a new product">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/>
+          <line class="scanline" x1="7" y1="12" x2="17" y2="12"/>
+        </svg>
+        Scan new product
+      </button>
+    </div>
+  `;
+}
+
 function renderSticky(){
   if (state.screen !== "detail") { stickyBar.style.display = "none"; return; }
   const item = currentItem();
@@ -642,8 +686,11 @@ function render(){
     }
     return;
   }
-  app.innerHTML = state.screen === "detail" ? scanView() : confirmView();
-  if (state.screen === "confirm") scrollEl.scrollTop = 0;
+  app.innerHTML = state.screen === "detail" ? scanView()
+    : state.screen === "paid" ? paidView()
+    : confirmView();
+  if (state.screen === "confirm" || state.screen === "paid") scrollEl.scrollTop = 0;
+  if (state.screen === "detail") mountExpressCheckout(currentItem());
   renderSticky();
   bind();
 }
@@ -682,11 +729,11 @@ function bind(){
     }
   };
 
-  const scanNew = document.getElementById("scanNew");
-  if (scanNew) scanNew.onclick = () => {
+  const goToScanner = () => {
     stopFullscreenScanner();
     state.screen = "scanner";
     state.scannedItem = null;
+    state.paidItem = null;
     state.phone = "";
     state.error = "";
     state.revealed = false;
@@ -694,6 +741,10 @@ function bind(){
     scrollEl.scrollTop = 0;
     render();
   };
+  const scanNew = document.getElementById("scanNew");
+  if (scanNew) scanNew.onclick = goToScanner;
+  const scanNewPaid = document.getElementById("scanNewPaid");
+  if (scanNewPaid) scanNewPaid.onclick = goToScanner;
 
   const ro = new IntersectionObserver(es => es.forEach(e => {
     if (e.isIntersecting) { e.target.classList.add("in"); ro.unobserve(e.target); }
@@ -736,6 +787,86 @@ async function handleSave() {
   render();
 }
 
+let stripeInstance = null;
+let stripeConfigPromise = null;
+
+async function getStripeInstance() {
+  if (stripeInstance) return stripeInstance;
+  if (typeof Stripe === "undefined") return null;
+  if (!stripeConfigPromise) {
+    stripeConfigPromise = fetch("/api/checkout/config").then(r => r.json()).catch(() => ({}));
+  }
+  const { publishableKey } = await stripeConfigPromise;
+  if (!publishableKey) return null;
+  stripeInstance = Stripe(publishableKey);
+  return stripeInstance;
+}
+
+async function mountExpressCheckout(item) {
+  const wrap = document.getElementById("expressCheckoutWrap");
+  const mountEl = document.getElementById("expressCheckoutElement");
+  if (!wrap || !mountEl) return;
+
+  const stripe = await getStripeInstance();
+  if (!stripe) { wrap.style.display = "none"; return; }
+
+  const amount = Math.round(parseFloat(item.price) * 100);
+  const elements = stripe.elements({ mode: "payment", currency: "usd", amount });
+  const expressCheckoutElement = elements.create("expressCheckout");
+
+  expressCheckoutElement.on("ready", ({ availablePaymentMethods }) => {
+    wrap.style.display = availablePaymentMethods ? "block" : "none";
+  });
+
+  expressCheckoutElement.on("confirm", async (event) => {
+    let clientSecret;
+    try {
+      const res = await fetch("/api/checkout/intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sku: item.sku }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.clientSecret) {
+        event.paymentFailed({ reason: "fail", message: data.error || "Could not start checkout." });
+        return;
+      }
+      clientSecret = data.clientSecret;
+    } catch {
+      event.paymentFailed({ reason: "fail", message: "Network error. Please try again." });
+      return;
+    }
+
+    const result = await stripe.confirmPayment({
+      elements,
+      clientSecret,
+      confirmParams: { return_url: window.location.origin + window.location.pathname },
+    });
+    if (result.error) {
+      event.paymentFailed({ reason: "fail", message: result.error.message });
+    }
+  });
+
+  expressCheckoutElement.mount(mountEl);
+}
+
+async function handleCheckoutRedirectReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const clientSecret = params.get("payment_intent_client_secret");
+  if (!clientSecret) return;
+
+  history.replaceState(null, "", window.location.pathname);
+
+  const stripe = await getStripeInstance();
+  if (!stripe) return;
+
+  const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
+  if (paymentIntent?.status === "succeeded") {
+    state.screen = "paid";
+    state.paidItem = state.scannedItem || ITEM;
+  }
+}
+
 const fsTap = document.getElementById("fsTap");
 
 const demoScan = () => {
@@ -744,7 +875,7 @@ const demoScan = () => {
 fsTap.addEventListener("click", demoScan);
 fsTap.addEventListener("touchstart", e => { e.preventDefault(); demoScan(); }, { passive: false });
 
-render();
+handleCheckoutRedirectReturn().finally(render);
 </script>
 </body>
 </html>

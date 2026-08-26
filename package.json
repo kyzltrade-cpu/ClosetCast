@@ -12,6 +12,7 @@
     "express": "^4",
     "openai": "^4",
     "node-cron": "^3",
+    "stripe": "^17",
     "twilio": "^5"
   }
 }

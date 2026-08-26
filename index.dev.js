@@ -6,14 +6,14 @@ const crypto = require("crypto");
 const cron = require("node-cron");
 const OpenAI = require("openai");
 const twilio = require("twilio");
+const { createCheckoutHandlers } = require("./lib/checkout");
 
 const app = express();
-app.use(express.json());
-app.use(express.static("public"));
 
 const PORT = process.env.PORT || 3000;
 const LEADS_FILE = path.join(__dirname, "leads.json");
 const PRODUCTS_FILE = path.join(__dirname, "products.json");
+const ORDERS_FILE = path.join(__dirname, "orders.json");
 
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
@@ -35,6 +35,33 @@ function readProducts() {
   try { return JSON.parse(fs.readFileSync(PRODUCTS_FILE, "utf8")); }
   catch { return []; }
 }
+
+function readOrders() {
+  try { return JSON.parse(fs.readFileSync(ORDERS_FILE, "utf8")); }
+  catch { return []; }
+}
+
+function writeOrders(orders) {
+  fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2));
+}
+
+const checkout = createCheckoutHandlers({
+  getProductBySku: async (sku) => readProducts().find(p => p.sku === sku) || null,
+  recordOrder: async (order) => {
+    const orders = readOrders();
+    orders.push({ id: crypto.randomUUID(), ...order, createdAt: new Date().toISOString() });
+    writeOrders(orders);
+  },
+});
+
+// Mounted before express.json() so Stripe's webhook signature check sees the raw body.
+app.post("/api/checkout/webhook", express.raw({ type: "application/json" }), checkout.webhookHandler);
+
+app.use(express.json());
+app.use(express.static("public"));
+
+app.get("/api/checkout/config", checkout.configHandler);
+app.post("/api/checkout/intent", checkout.intentHandler);
 
 function isQuietHours() {
   const now = new Date();
@@ -153,6 +180,7 @@ cron.schedule("*/15 * * * *", async () => {
 app.listen(PORT, () => {
   console.log(`ClosetCast running on http://localhost:${PORT}`);
   if (!fs.existsSync(LEADS_FILE)) writeLeads([]);
+  if (!fs.existsSync(ORDERS_FILE)) writeOrders([]);
   if (!fs.existsSync(PRODUCTS_FILE)) {
     fs.writeFileSync(PRODUCTS_FILE, JSON.stringify([], null, 2));
     console.log("WARNING: products.json is empty.");

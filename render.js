@@ -4,10 +4,9 @@ const { createClient } = require("@supabase/supabase-js");
 const cron = require("node-cron");
 const OpenAI = require("openai");
 const twilio = require("twilio");
+const { createCheckoutHandlers } = require("./lib/checkout");
 
 const app = express();
-app.use(express.json());
-app.use(express.static("public"));
 
 const PORT = process.env.PORT || 3000;
 
@@ -17,6 +16,34 @@ const nvidia = new OpenAI({
   apiKey: process.env.NVIDIA_API_KEY,
   baseURL: process.env.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1",
 });
+
+const checkout = createCheckoutHandlers({
+  getProductBySku: async (sku) => {
+    const { data, error } = await supabase.from("products").select("*").eq("sku", sku).single();
+    if (error) return null;
+    return data;
+  },
+  recordOrder: async (order) => {
+    const { error } = await supabase.from("orders").insert({
+      stripe_payment_intent_id: order.stripePaymentIntentId,
+      sku: order.sku,
+      item_name: order.itemName,
+      store: order.store,
+      amount_total: order.amountTotal,
+      currency: order.currency,
+    });
+    if (error) throw error;
+  },
+});
+
+// Mounted before express.json() so Stripe's webhook signature check sees the raw body.
+app.post("/api/checkout/webhook", express.raw({ type: "application/json" }), checkout.webhookHandler);
+
+app.use(express.json());
+app.use(express.static("public"));
+
+app.get("/api/checkout/config", checkout.configHandler);
+app.post("/api/checkout/intent", checkout.intentHandler);
 
 function isQuietHours() {
   const now = new Date();
