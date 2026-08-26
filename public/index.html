@@ -748,6 +748,25 @@ function scanView() {
         <p class="fine">One confirmation text now · one reminder in a couple of days.</p>
       `}
     </div>
+  `;
+}
+
+function checkoutView(){
+  const item = currentItem();
+  return `
+    <div class="panel reveal" style="padding-top:6px">
+      <div class="eyebrow">Checkout</div>
+      <h1 class="name">${esc(item.name)}</h1>
+    </div>
+
+    <div class="saved-row reveal">
+      <div class="thumb">${jacketArt()}</div>
+      <div class="s-meta">
+        <div class="s-name">${esc(item.name)}</div>
+        <div class="s-sub">${esc(item.color)} · Size ${esc(item.size)}</div>
+      </div>
+      <span class="s-price">$${esc(item.price)}</span>
+    </div>
 
     <div class="divider reveal"></div>
 
@@ -839,16 +858,10 @@ function renderSticky(){
       </button>
     </div>`;
   const s = document.getElementById("stickyBuyBtn");
-  if (s) s.onclick = () => triggerBuyNow(item);
-}
-
-function revealExpressCheckout() {
-  const el = document.getElementById("expressCheckoutWrap");
-  const sc = document.getElementById("scrollEl");
-  if (!el || !sc) return;
-  const r = el.getBoundingClientRect();
-  const sr = sc.getBoundingClientRect();
-  sc.scrollTop = Math.max(0, sc.scrollTop + (r.top - sr.top - 90));
+  if (s) s.onclick = () => {
+    state.screen = "checkout";
+    render();
+  };
 }
 
 function revealPhoneField() {
@@ -888,10 +901,11 @@ function render(){
     return;
   }
   app.innerHTML = state.screen === "detail" ? scanView()
+    : state.screen === "checkout" ? checkoutView()
     : state.screen === "paid" ? paidView()
     : confirmView();
-  if (state.screen === "confirm" || state.screen === "paid") scrollEl.scrollTop = 0;
-  if (state.screen === "detail") mountExpressCheckout(currentItem());
+  if (state.screen === "confirm" || state.screen === "paid" || state.screen === "checkout") scrollEl.scrollTop = 0;
+  if (state.screen === "checkout") mountExpressCheckout(currentItem());
   renderSticky();
   bind();
 }
@@ -928,6 +942,11 @@ function bind(){
 
   const backBtn = document.getElementById("backBtn");
   if (backBtn) backBtn.onclick = () => {
+    if (state.screen === "checkout") {
+      state.screen = "detail";
+      render();
+      return;
+    }
     if (state.screen === "detail") {
       stopFullscreenScanner();
       state.screen = "scanner";
@@ -1017,12 +1036,6 @@ function completeDemoPurchase(item) {
   render();
 }
 
-async function triggerBuyNow(item) {
-  const stripe = await getStripeInstance();
-  if (!stripe) { completeDemoPurchase(item); return; }
-  revealExpressCheckout();
-}
-
 async function mountExpressCheckout(item) {
   const wrap = document.getElementById("expressCheckoutWrap");
   const mountEl = document.getElementById("expressCheckoutElement");
@@ -1030,7 +1043,15 @@ async function mountExpressCheckout(item) {
 
   const stripe = await getStripeInstance();
   if (!stripe) {
-    wrap.style.display = "none";
+    wrap.style.display = "block";
+    mountEl.innerHTML = `
+      <button type="button" class="express-demo-btn" id="demoCheckoutBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Confirm & Pay $${esc(item.price)}
+      </button>
+    `;
+    const demoBtn = document.getElementById("demoCheckoutBtn");
+    if (demoBtn) demoBtn.onclick = () => completeDemoPurchase(item);
     return;
   }
 
