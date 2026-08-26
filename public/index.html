@@ -214,15 +214,6 @@
   .express-checkout .eyebrow{text-align:center;}
   #expressCheckoutElement{min-height:44px;}
   .express-checkout .fine{margin-top:10px;}
-  .express-demo-btn{
-    width:100%;background:#000;color:#fff;border:0;border-radius:var(--r-md);
-    padding:14px;font-size:16px;font-weight:600;font-family:var(--sans);cursor:pointer;
-    display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.01em;
-    transition:background .15s ease, transform .1s ease;
-  }
-  .express-demo-btn:hover{background:#1a1a1a;}
-  .express-demo-btn:active{transform:scale(.98);}
-  .express-demo-btn svg{width:18px;height:18px;}
 
   /* ═══════════ CONFIRMATION (rich) ═══════════ */
   .confirm{padding:46px 24px 30px;text-align:center;animation:rise .55s var(--ease) both;}
@@ -772,7 +763,7 @@ function checkoutView(){
   return `
     <div class="panel reveal" style="padding-top:6px">
       <div class="eyebrow">Checkout</div>
-      <h1 class="name">${esc(item.name)}</h1>
+      <h1 class="name">Review &amp; Pay</h1>
     </div>
 
     <div class="saved-row reveal">
@@ -782,6 +773,12 @@ function checkoutView(){
         <div class="s-sub">${esc(item.color)} · Size ${esc(item.size)}</div>
       </div>
       <span class="s-price">$${esc(item.price)}</span>
+    </div>
+
+    <div class="trust reveal">
+      <div class="trust-item"><span class="ic">${icon("lock",14)}</span> Payment is encrypted end-to-end</div>
+      <div class="trust-item"><span class="ic">${icon("message",14)}</span> Instant digital receipt after payment</div>
+      <div class="trust-item"><span class="ic">${icon("x",14)}</span> Free returns within 30 days</div>
     </div>
 
     <div class="divider reveal"></div>
@@ -1085,7 +1082,7 @@ async function mountExpressCheckout(item) {
   if (!stripe) {
     wrap.style.display = "block";
     mountEl.innerHTML = `
-      <button type="button" class="express-demo-btn" id="demoCheckoutBtn">
+      <button type="button" class="cta-primary" id="demoCheckoutBtn" aria-label="Confirm and pay">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
         Confirm & Pay $${esc(item.price)}
       </button>
