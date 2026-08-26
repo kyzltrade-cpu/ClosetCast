@@ -839,7 +839,7 @@ function renderSticky(){
       </button>
     </div>`;
   const s = document.getElementById("stickyBuyBtn");
-  if (s) s.onclick = () => revealExpressCheckout();
+  if (s) s.onclick = () => triggerBuyNow(item);
 }
 
 function revealExpressCheckout() {
@@ -1011,6 +1011,18 @@ async function getStripeInstance() {
   return stripeInstance;
 }
 
+function completeDemoPurchase(item) {
+  state.screen = "paid";
+  state.paidItem = item;
+  render();
+}
+
+async function triggerBuyNow(item) {
+  const stripe = await getStripeInstance();
+  if (!stripe) { completeDemoPurchase(item); return; }
+  revealExpressCheckout();
+}
+
 async function mountExpressCheckout(item) {
   const wrap = document.getElementById("expressCheckoutWrap");
   const mountEl = document.getElementById("expressCheckoutElement");
@@ -1018,19 +1030,7 @@ async function mountExpressCheckout(item) {
 
   const stripe = await getStripeInstance();
   if (!stripe) {
-    wrap.style.display = "block";
-    mountEl.innerHTML = `
-      <button type="button" class="express-demo-btn" id="demoCheckoutBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        Pay $${esc(item.price)} (Demo)
-      </button>
-    `;
-    const demoBtn = document.getElementById("demoCheckoutBtn");
-    if (demoBtn) demoBtn.onclick = () => {
-      state.screen = "paid";
-      state.paidItem = item;
-      render();
-    };
+    wrap.style.display = "none";
     return;
   }
 
