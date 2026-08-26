@@ -255,6 +255,21 @@
     margin-bottom:22px;background:var(--green-soft);color:var(--green);
   }
 
+  /* ═══════════ RECEIPT ═══════════ */
+  .receipt{
+    border:1px dashed var(--border);border-radius:var(--r-md);
+    padding:16px 18px;margin:0 0 20px;background:var(--surface);text-align:left;
+  }
+  .receipt-header{display:flex;flex-direction:column;gap:2px;margin-bottom:2px;}
+  .receipt-store{font-family:var(--serif);font-weight:600;font-size:15px;}
+  .receipt-order,.receipt-date{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .receipt-divider{border-top:1px dashed var(--border);margin:12px 0;}
+  .receipt-line{display:flex;justify-content:space-between;gap:12px;font-size:13px;margin:5px 0;}
+  .receipt-line .item-name{color:var(--ink);}
+  .receipt-line .item-sub{display:block;font-size:11px;color:var(--muted);margin-top:1px;}
+  .receipt-total{font-weight:650;font-size:14.5px;}
+  .receipt-meta{font-size:11px;color:var(--muted);text-align:center;margin-top:12px;}
+
   /* ── SMS bubble — green version ── */
   .sms{
     position:relative;background:var(--green-soft);border:1px solid #DCE6DC;
@@ -373,6 +388,7 @@ const state = {
   screen: "scanner",
   scannedItem: null,
   paidItem: null,
+  receipt: null,
   phone: "",
   country: "+1",
   submitting: false,
@@ -814,21 +830,43 @@ function confirmView(){
   `;
 }
 
+function buildReceipt(item, { method, demo }) {
+  const now = new Date();
+  return {
+    orderId: "CC-" + now.getTime().toString(36).toUpperCase(),
+    date: now.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
+    time: now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }),
+    method: method || "Card",
+    demo: !!demo,
+  };
+}
+
 function paidView(){
   const item = state.paidItem || ITEM;
+  const receipt = state.receipt || buildReceipt(item, { method: "Card", demo: true });
   return `
     <div class="confirm">
       <div class="ok">${icon("check",26)}</div>
       <h2>Payment successful</h2>
-      <p class="sub">You just bought this piece from ${esc(item.store)}. A receipt is on its way from Stripe.</p>
+      <p class="sub">Thanks for your purchase from ${esc(item.store)}.</p>
 
-      <div class="saved-row">
-        <div class="thumb">${jacketArt()}</div>
-        <div class="s-meta">
-          <div class="s-name">${esc(item.name)}</div>
-          <div class="s-sub">${esc(item.color)} · Size ${esc(item.size)}</div>
+      <div class="receipt reveal">
+        <div class="receipt-header">
+          <div class="receipt-store">${esc(item.store)}</div>
+          <div class="receipt-order">Order #${esc(receipt.orderId)}</div>
+          <div class="receipt-date">${esc(receipt.date)} · ${esc(receipt.time)}</div>
         </div>
-        <span class="s-price">$${esc(item.price)}</span>
+        <div class="receipt-divider"></div>
+        <div class="receipt-line">
+          <span class="item-name">${esc(item.name)}<span class="item-sub">${esc(item.color)} · Size ${esc(item.size)}</span></span>
+          <span>$${esc(item.price)}</span>
+        </div>
+        <div class="receipt-divider"></div>
+        <div class="receipt-line receipt-total">
+          <span>Total</span>
+          <span>$${esc(item.price)}</span>
+        </div>
+        <p class="receipt-meta">Paid with ${esc(receipt.method)} · ${receipt.demo ? "Demo receipt — no real charge was made" : "A confirmation has also been sent by Stripe"}</p>
       </div>
 
       <button class="cta-primary" id="scanNewPaid" aria-label="Scan a new product">
@@ -964,6 +1002,7 @@ function bind(){
     state.screen = "scanner";
     state.scannedItem = null;
     state.paidItem = null;
+    state.receipt = null;
     state.phone = "";
     state.error = "";
     state.revealed = false;
@@ -1033,6 +1072,7 @@ async function getStripeInstance() {
 function completeDemoPurchase(item) {
   state.screen = "paid";
   state.paidItem = item;
+  state.receipt = buildReceipt(item, { method: "Demo Payment", demo: true });
   render();
 }
 
@@ -1107,8 +1147,13 @@ async function handleCheckoutRedirectReturn() {
 
   const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
   if (paymentIntent?.status === "succeeded") {
+    const paidItem = state.scannedItem || ITEM;
     state.screen = "paid";
-    state.paidItem = state.scannedItem || ITEM;
+    state.paidItem = paidItem;
+    state.receipt = buildReceipt(paidItem, {
+      method: paymentIntent.payment_method_types?.[0] || "Card",
+      demo: false,
+    });
   }
 }
 
