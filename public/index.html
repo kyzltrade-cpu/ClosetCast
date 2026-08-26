@@ -214,6 +214,15 @@
   .express-checkout .eyebrow{text-align:center;}
   #expressCheckoutElement{min-height:44px;}
   .express-checkout .fine{margin-top:10px;}
+  .express-demo-btn{
+    width:100%;background:#000;color:#fff;border:0;border-radius:var(--r-md);
+    padding:14px;font-size:16px;font-weight:600;font-family:var(--sans);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.01em;
+    transition:background .15s ease, transform .1s ease;
+  }
+  .express-demo-btn:hover{background:#1a1a1a;}
+  .express-demo-btn:active{transform:scale(.98);}
+  .express-demo-btn svg{width:18px;height:18px;}
 
   /* ═══════════ CONFIRMATION (rich) ═══════════ */
   .confirm{padding:46px 24px 30px;text-align:center;animation:rise .55s var(--ease) both;}
@@ -1005,7 +1014,22 @@ async function mountExpressCheckout(item) {
   if (!wrap || !mountEl) return;
 
   const stripe = await getStripeInstance();
-  if (!stripe) { wrap.style.display = "none"; return; }
+  if (!stripe) {
+    wrap.style.display = "block";
+    mountEl.innerHTML = `
+      <button type="button" class="express-demo-btn" id="demoCheckoutBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Pay $${esc(item.price)} (Demo)
+      </button>
+    `;
+    const demoBtn = document.getElementById("demoCheckoutBtn");
+    if (demoBtn) demoBtn.onclick = () => {
+      state.screen = "paid";
+      state.paidItem = item;
+      render();
+    };
+    return;
+  }
 
   const amount = Math.round(parseFloat(item.price) * 100);
   const elements = stripe.elements({ mode: "payment", currency: "usd", amount });
